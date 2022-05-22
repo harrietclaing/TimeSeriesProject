@@ -5,20 +5,15 @@ output:
 ---
 
 # Purpose
-
-Purpose of this work folder.
-
-Ideally store a minimum working example data set in data folder.
-
-Add binary files in bin, and closed R functions in code. Human Readable settings files (e.g. csv) should be placed in settings/
-
+To replicate the study by Cologni & Manera to find the economic impact of a rise in oil prices.
 
 ```{r}
-
 rm(list = ls()) # Clean your environment:
 gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
 library(tidyverse)
-list.files('code/', full.names = T, recursive = T) %>% .[grepl('.R', .)] %>% as.list() %>% walk(~source(.))
 ```
+# Step 1: Find the data
+First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly, except for interest rates. 
+
 
 
