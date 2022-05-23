@@ -11,14 +11,60 @@ To replicate the study by Cologni & Manera to find the economic impact of a rise
 rm(list = ls()) # Clean your environment:
 gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
 library(tidyverse)
+library(zoo)
+library(tseries)
 ```
 # Step 1: Find the data
+
+Tried to find all data from the IMF, but for Exchange Rates had to use OECD estimates and for Inflation had to use US Bureau of Labor Statistics.
+
 First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. 
 
 Interest rates ($r_t$)
 ```{r}
+#rename column in dataframe
+InterestRateUS_ <- rename(InterestRateUS, InterestRate=INTDSRUSM193N)
 
+#convert monthly to quarterly
+
+InterestRates_US <- InterestRateUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1979Q4" & DATE<"2003Q4")
+#we want to filter to get the correct time frame
+InterestRates_US
 ```
+Inflation ($p_t$)
+```{r}
+#rename column in dataframe
+InflationUS_ <- rename(InflationUSBLSUS, Inflation=CPIAUCSL)
+
+#convert monthly to quarterly
+
+Inflation_US <- InflationUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1979Q4" & DATE<"2003Q4")
+#we want to filter to get the correct time frame
+Inflation_US
+```
+
+
+Monetary aggregates ($M_t$)
+```{r}
+#rename column in dataframe
+MonetaryAggregateM1US_ <- rename(MonetaryAggregateM1US, MonetaryAggregate=MYAGM1USM052S)
+
+#convert monthly to quarterly
+
+MonetaryAggregateM1_US <- MonetaryAggregateM1US_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1979Q4" & DATE<"2003Q4")
+#we want to filter to get the correct time frame
+MonetaryAggregateM1_US
+```
+
 
 
 Exchange rates ($e_t$)
@@ -26,8 +72,8 @@ Exchange rates ($e_t$)
 #rename column in dataframe
 ExchangeRatesOECDUS_ <- rename(ExchangeRatesOECDUS, ExchangeRate=CCUSSP01IFM650N)
 
-#ExchangeRate is in monthly...we want in quarterly
-library(zoo)
+#convert monthly to quarterly
+
 ExchangeRates_US <- ExchangeRatesOECDUS_ %>% 
     group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
     summarise_all(mean) %>% 
@@ -35,7 +81,68 @@ ExchangeRates_US <- ExchangeRatesOECDUS_ %>%
 #we want to filter to get the correct time frame
 ExchangeRates_US
 ```
+For real GDP, we have quarterly, so we will need to simply isolate the time period.
+```{r}
+#rename column in dataframe
+RealGDPUS_ <- rename(RealGDPUS, RealGDP=NGDPRSAXDCUSQ)
+
+RealGDP_US <- RealGDPUS_ %>% 
+                group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+                filter(DATE>"1979Q4" & DATE<"2003Q4")
+#we want to filter to get the correct time frame
+RealGDP_US
+```
+
+# Step 2: Transform the data 
+
+Next step is to transform all variables in logs, except for the interest rate.
+
+```{r}
+logInflation_US <- data.frame(DATE=Inflation_US$DATE, logInflation=log(Inflation_US$Inflation))
+logRealGDP_US <- data.frame(DATE=RealGDP_US$DATE, logRealGDP=log(RealGDP_US$RealGDP))
+logMonetaryAggregateM1_US <-data.frame(DATE=MonetaryAggregateM1_US$DATE, logMonetaryAggregateM1=log(MonetaryAggregateM1_US$MonetaryAggregate))
+logExchangeRates_US <-data.frame(DATE=ExchangeRates_US$DATE, logExchangeRates=log(ExchangeRates_US$ExchangeRate))
+```
 
 
+# Step 3: Augemented Dickey-Fuller tests
 
+The null-hypothesis of an Augmented Dickey-Fuller test is that the series has a unit-root. We ask, is the estimated critical value small enough to reject the null-hypothesis? If yes, we cannot reject the null hypothesis, therefore, the series may be non-stationary.
+
+Interest Rate
+```{r}
+#let us visualise first
+ggplot() +
+    geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate))
+
+adf.test(InterestRates_US$InterestRate)
+```
+p-value is not smaller than 0.05 therefore cannot reject the null-hypothesis...therefore interest rates are non-stationary.
+
+Inflation
+```{r}
+ggplot() +
+    geom_point(aes(logInflation_US$DATE, logInflation_US$logInflation))
+
+adf.test(logInflation_US$logInflation)
+```
+
+Real GDP
+```{r}
+ggplot() +
+    geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))
+
+adf.test(logRealGDP_US$logRealGDP)
+```
+Monetary Aggregates
+```{r}
+ggplot() +
+    geom_point(aes(logMonetaryAggregateM1_US$DATE, logMonetaryAggregateM1_US$logMonetaryAggregateM1))
+
+adf.test(logMonetaryAggregateM1_US$logMonetaryAggregateM1)
+```
+Exchange Rate
+```{r}
+
+```
 
