@@ -13,6 +13,7 @@ gc() # garbage collection - It can be useful to call gc after a large object has
 library(tidyverse)
 library(zoo)
 library(tseries)
+library(vars)
 ```
 # Step 1: Find the data
 
@@ -100,7 +101,7 @@ Next step is to transform all variables in logs, except for the interest rate.
 ```{r}
 logInflation_US <- data.frame(DATE=Inflation_US$DATE, logInflation=log(Inflation_US$Inflation))
 logRealGDP_US <- data.frame(DATE=RealGDP_US$DATE, logRealGDP=log(RealGDP_US$RealGDP))
-logMonetaryAggregateM1_US <-data.frame(DATE=MonetaryAggregateM1_US$DATE, logMonetaryAggregateM1=log(MonetaryAggregateM1_US$MonetaryAggregate))
+logMonetaryAggregateM1_US <-data.frame(DATE=MonetaryAggregateM1_US$DATE,logMonetaryAggregateM1=log(MonetaryAggregateM1_US$MonetaryAggregate))
 logExchangeRates_US <-data.frame(DATE=ExchangeRates_US$DATE, logExchangeRates=log(ExchangeRates_US$ExchangeRate))
 ```
 
@@ -115,34 +116,54 @@ Interest Rate
 ggplot() +
     geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate))
 
-adf.test(InterestRates_US$InterestRate)
+adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type = "none", selectlags = c("AIC"))
+summary(adf.InterestRate)
 ```
-p-value is not smaller than 0.05 therefore cannot reject the null-hypothesis...therefore interest rates are non-stationary.
+The estimated critical value of -2.0189 is not small enough to reject the null hypothesis at any confidence interval, ie -2.0189 > -2.6
 
 Inflation
 ```{r}
 ggplot() +
     geom_point(aes(logInflation_US$DATE, logInflation_US$logInflation))
 
-adf.test(logInflation_US$logInflation)
+adf.Inflation <- ur.df(Inflation_US$Inflation, type = "none", selectlags = c("AIC"))
+summary(adf.Inflation)
 ```
+The estimated critical value of 4.7033 is not small enough to reject the null hypothesis, 4.7033 > -2.6. Therefore cannot reject the null hypothesis that there is a unit root.
 
 Real GDP
 ```{r}
 ggplot() +
     geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))
 
-adf.test(logRealGDP_US$logRealGDP)
+adf.RealGDP <- ur.df(logRealGDP_US$logRealGDP, type = "none", selectlags = c("AIC"))
+summary(adf.RealGDP)
 ```
+The estimated critical value is not small enough to reject the null hypothesis of a unit root, 5.6119 > -2.6.
+
 Monetary Aggregates
 ```{r}
 ggplot() +
     geom_point(aes(logMonetaryAggregateM1_US$DATE, logMonetaryAggregateM1_US$logMonetaryAggregateM1))
 
-adf.test(logMonetaryAggregateM1_US$logMonetaryAggregateM1)
+adf.MonetaryAggregate <- ur.df(logMonetaryAggregateM1_US$logMonetaryAggregateM1, type = "none", selectlags = c("AIC"))
+summary(adf.MonetaryAggregate)
 ```
+2.9491 > -2.6 therefore cannot reject the null hypothesis of unit root
+
 Exchange Rate
 ```{r}
+ggplot() +
+    geom_point(aes(logExchangeRates_US$DATE, logExchangeRates_US$logExchangeRates))
 
+adf.ExchangeRates <- ur.df(logExchangeRates_US$logExchangeRates, type = "none", selectlags = c("AIC"))
+summary(adf.ExchangeRates)
 ```
+CONCERING BECAUSE WE FIND THAT WE CAN REJECT THE NULL HYPOTHESIS FOR EXCHANGE RATES
+
+According to the paper, they decided to deal with I(2) processes of Monetary Aggregates and Inflation with considering real money aggregate $m_t - p_t$ and inflation rate as change in $p_t$
+
+# Step 4: Johansen Test in the Long-Run Approach
+
+# Step 5: AIC criteria to choose lags
 
