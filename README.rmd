@@ -13,7 +13,29 @@ gc() # garbage collection - It can be useful to call gc after a large object has
 library(tidyverse)
 ```
 # Step 1: Find the data
-First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly, except for interest rates. 
+First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. 
+
+Interest rates ($r_t$)
+```{r}
+
+```
+
+
+Exchange rates ($e_t$)
+```{r}
+#rename column in dataframe
+ExchangeRatesOECDUS_ <- rename(ExchangeRatesOECDUS, ExchangeRate=CCUSSP01IFM650N)
+
+#ExchangeRate is in monthly...we want in quarterly
+library(zoo)
+ExchangeRates_US <- ExchangeRatesOECDUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1979Q4" & DATE<"2003Q4")
+#we want to filter to get the correct time frame
+ExchangeRates_US
+```
+
 
 
 
