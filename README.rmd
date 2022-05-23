@@ -14,12 +14,28 @@ library(tidyverse)
 library(zoo)
 library(tseries)
 library(vars)
+library(urca)
 ```
 # Step 1: Find the data
 
 Tried to find all data from the IMF, but for Exchange Rates had to use OECD estimates and for Inflation had to use US Bureau of Labor Statistics.
 
 First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. 
+
+World oil price: could only find from 1990
+```{r}
+#convert monthly to quarterly & change
+ 
+
+WorldOilPricedollars <- GlobalPriceofBrentCrudeUSDollars %>% 
+                        group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q"))%>%
+                        summarise_all(mean) %>% 
+                        filter(DATE>"1979Q4" & DATE<"2003Q4")
+
+WorldOilPrice_dollars <- data.frame(DATE=WorldOilPricedollars$DATE, WorldOilPrice=WorldOilPricedollars$POILBREUSDM)
+                        
+WorldOilPrice_dollars
+```
 
 Interest rates ($r_t$)
 ```{r}
@@ -31,7 +47,7 @@ InterestRateUS_ <- rename(InterestRateUS, InterestRate=INTDSRUSM193N)
 InterestRates_US <- InterestRateUS_ %>% 
     group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
     summarise_all(mean) %>% 
-    filter(DATE>"1979Q4" & DATE<"2003Q4")
+    filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
 InterestRates_US
 ```
@@ -45,7 +61,7 @@ InflationUS_ <- rename(InflationUSBLSUS, Inflation=CPIAUCSL)
 Inflation_US <- InflationUS_ %>% 
     group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
     summarise_all(mean) %>% 
-    filter(DATE>"1979Q4" & DATE<"2003Q4")
+    filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
 Inflation_US
 ```
@@ -61,7 +77,7 @@ MonetaryAggregateM1US_ <- rename(MonetaryAggregateM1US, MonetaryAggregate=MYAGM1
 MonetaryAggregateM1_US <- MonetaryAggregateM1US_ %>% 
     group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
     summarise_all(mean) %>% 
-    filter(DATE>"1979Q4" & DATE<"2003Q4")
+    filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
 MonetaryAggregateM1_US
 ```
@@ -78,7 +94,7 @@ ExchangeRatesOECDUS_ <- rename(ExchangeRatesOECDUS, ExchangeRate=CCUSSP01IFM650N
 ExchangeRates_US <- ExchangeRatesOECDUS_ %>% 
     group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
     summarise_all(mean) %>% 
-    filter(DATE>"1979Q4" & DATE<"2003Q4")
+    filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
 ExchangeRates_US
 ```
@@ -89,7 +105,7 @@ RealGDPUS_ <- rename(RealGDPUS, RealGDP=NGDPRSAXDCUSQ)
 
 RealGDP_US <- RealGDPUS_ %>% 
                 group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
-                filter(DATE>"1979Q4" & DATE<"2003Q4")
+                filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
 RealGDP_US
 ```
@@ -115,17 +131,23 @@ Interest Rate
 #let us visualise first
 ggplot() +
     geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate))
+```
+No clear trend in the series.
 
+```{r}
 adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type = "none", selectlags = c("AIC"))
 summary(adf.InterestRate)
 ```
-The estimated critical value of -2.0189 is not small enough to reject the null hypothesis at any confidence interval, ie -2.0189 > -2.6
+The estimated critical value is not small enough to reject the null hypothesis at any confidence interval, ie -1.5147 > -2.6
 
 Inflation
 ```{r}
 ggplot() +
     geom_point(aes(logInflation_US$DATE, logInflation_US$logInflation))
+```
+Clear upward trend, looks linear
 
+```{r}
 adf.Inflation <- ur.df(Inflation_US$Inflation, type = "none", selectlags = c("AIC"))
 summary(adf.Inflation)
 ```
@@ -135,7 +157,10 @@ Real GDP
 ```{r}
 ggplot() +
     geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))
+```
+Clear upward trend, linear
 
+```{r}
 adf.RealGDP <- ur.df(logRealGDP_US$logRealGDP, type = "none", selectlags = c("AIC"))
 summary(adf.RealGDP)
 ```
@@ -145,7 +170,10 @@ Monetary Aggregates
 ```{r}
 ggplot() +
     geom_point(aes(logMonetaryAggregateM1_US$DATE, logMonetaryAggregateM1_US$logMonetaryAggregateM1))
+```
+Increasing linear trend up to a point and then increasing at slower rate and fluctuates
 
+```{r}
 adf.MonetaryAggregate <- ur.df(logMonetaryAggregateM1_US$logMonetaryAggregateM1, type = "none", selectlags = c("AIC"))
 summary(adf.MonetaryAggregate)
 ```
@@ -155,15 +183,58 @@ Exchange Rate
 ```{r}
 ggplot() +
     geom_point(aes(logExchangeRates_US$DATE, logExchangeRates_US$logExchangeRates))
+```
+Fluctuating series
 
+```{r}
 adf.ExchangeRates <- ur.df(logExchangeRates_US$logExchangeRates, type = "none", selectlags = c("AIC"))
 summary(adf.ExchangeRates)
 ```
-CONCERING BECAUSE WE FIND THAT WE CAN REJECT THE NULL HYPOTHESIS FOR EXCHANGE RATES
+0.0214 >-2.6 therefore cannot reject the unit root
+
+# Transformations of Monetary Aggregate and Inflation
 
 According to the paper, they decided to deal with I(2) processes of Monetary Aggregates and Inflation with considering real money aggregate $m_t - p_t$ and inflation rate as change in $p_t$
 
+First need to create a dataframe with both Monetary Aggregates and Inflation
+
+```{r}
+dfMonetaryAggregate_Inflation <- data.frame(DATE=logMonetaryAggregateM1_US$DATE, logInflation=logInflation_US$logInflation, logMonetaryAggregateM1= logMonetaryAggregateM1_US$logMonetaryAggregateM1)
+dfMonetaryAggregate_Inflation
+```
+
+
+```{r}
+TransformedMonetaryAggregateM1_US <- mutate(dfMonetaryAggregate_Inflation, TransformedMonetaryAggregateM1 = logMonetaryAggregateM1-logInflation)
+TransformedMonetaryAggregateM1_US
+```
+
+Then, change in price level??? we need the previous value to add as a change
+```{r}
+TransformedInflation_US <- mutate(dfMonetaryAggregate_Inflation, TransformedInflation = dfMonetaryAggregate_Inflation$logInflation - lag(dfMonetaryAggregate_Inflation$logInflation, default=first(dfMonetaryAggregate_Inflation$logInflation)))
+TransformedInflation_US
+```
+
+
+# Set up the VAR model
+
+```{r}
+df_US <- data.frame(DATE=logExchangeRates_US$DATE, InterestRate=InterestRates_US$InterestRate, Inflation= TransformedInflation_US$TransformedInflation, RealGDP=logRealGDP_US$logRealGDP, MonetaryAggregate=TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, ExchangeRates=logExchangeRates_US$logExchangeRates, WorldOilPrice=WorldOilPrice_dollars$WorldOilPrice)
+
+matrix_US <- as.matrix(df_US)
+
+# nr_lev <- nrow(df.lev)
+```
+Now we have our VAR model in matrix form and data frame form...now we need to check the number of cointegrating relationships, stationarity and white noise residuals.
+
 # Step 4: Johansen Test in the Long-Run Approach
+
+```{r}
+?ca.jo
+jotest <- ca.jo(df_US, type="trace", K=2, ecdet="none", spec="longrun")
+summary(jotest)
+```
+
 
 # Step 5: AIC criteria to choose lags
 
