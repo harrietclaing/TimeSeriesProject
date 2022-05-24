@@ -1,7 +1,6 @@
 ---
-output:
-  md_document:
-    variant: markdown_github
+title: "TimeSeries Project"
+output: html_document
 ---
 
 # Purpose
@@ -15,14 +14,14 @@ library(zoo)
 library(tseries)
 library(vars)
 library(urca)
+library(AICcmodavg)
+library(ggplot2)
+library(ggfortify)
 ```
 # Step 1: Find the data
 
-Tried to find all data from the IMF, but for Exchange Rates had to use OECD estimates and for Inflation had to use US Bureau of Labor Statistics.
+Tried to find all data from the IMF, but for Exchange Rates had to use OECD estimates and for Inflation had to use US Bureau of Labor Statistics. First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. World oil price: could only find from 1990, therefore had to limit to 1990 onwards.
 
-First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. 
-
-World oil price: could only find from 1990
 ```{r}
 #convert monthly to quarterly & change
  
@@ -33,10 +32,7 @@ WorldOilPricedollars <- GlobalPriceofBrentCrudeUSDollars %>%
                         filter(DATE>"1979Q4" & DATE<"2003Q4")
 
 WorldOilPrice_dollars <- data.frame(DATE=WorldOilPricedollars$DATE, WorldOilPrice=WorldOilPricedollars$POILBREUSDM)
-                        
-WorldOilPrice_dollars
 ```
-
 Interest rates ($r_t$)
 ```{r}
 #rename column in dataframe
@@ -49,7 +45,6 @@ InterestRates_US <- InterestRateUS_ %>%
     summarise_all(mean) %>% 
     filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
-InterestRates_US
 ```
 Inflation ($p_t$)
 ```{r}
@@ -61,12 +56,9 @@ InflationUS_ <- rename(InflationUSBLSUS, Inflation=CPIAUCSL)
 Inflation_US <- InflationUS_ %>% 
     group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
     summarise_all(mean) %>% 
-    filter(DATE>"1989Q4" & DATE<"2003Q4")
+    filter(DATE>"1989Q4" & DATE<"2003Q4") #one period back to get a change later on
 #we want to filter to get the correct time frame
-Inflation_US
 ```
-
-
 Monetary aggregates ($M_t$)
 ```{r}
 #rename column in dataframe
@@ -79,11 +71,7 @@ MonetaryAggregateM1_US <- MonetaryAggregateM1US_ %>%
     summarise_all(mean) %>% 
     filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
-MonetaryAggregateM1_US
 ```
-
-
-
 Exchange rates ($e_t$)
 ```{r}
 #rename column in dataframe
@@ -96,7 +84,6 @@ ExchangeRates_US <- ExchangeRatesOECDUS_ %>%
     summarise_all(mean) %>% 
     filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
-ExchangeRates_US
 ```
 For real GDP, we have quarterly, so we will need to simply isolate the time period.
 ```{r}
@@ -107,20 +94,39 @@ RealGDP_US <- RealGDPUS_ %>%
                 group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
                 filter(DATE>"1989Q4" & DATE<"2003Q4")
 #we want to filter to get the correct time frame
-RealGDP_US
 ```
 
 # Step 2: Transform the data 
 
-Next step is to transform all variables in logs, except for the interest rate.
+Next step is to transform all I(1) variables in logs, except for the interest rate. 
 
 ```{r}
-logInflation_US <- data.frame(DATE=Inflation_US$DATE, logInflation=log(Inflation_US$Inflation))
 logRealGDP_US <- data.frame(DATE=RealGDP_US$DATE, logRealGDP=log(RealGDP_US$RealGDP))
-logMonetaryAggregateM1_US <-data.frame(DATE=MonetaryAggregateM1_US$DATE,logMonetaryAggregateM1=log(MonetaryAggregateM1_US$MonetaryAggregate))
 logExchangeRates_US <-data.frame(DATE=ExchangeRates_US$DATE, logExchangeRates=log(ExchangeRates_US$ExchangeRate))
+logWorldOilPrice <- data.frame(DATE=WorldOilPrice_dollars$DATE, logWorldOilPrice=log(WorldOilPrice_dollars$WorldOilPrice))
 ```
 
+But according to the paper, different transformations for the I(2) series of Monetary Aggregates and Inflation. The plot for logInflation and Inflation both show almost identical linear upward trends.
+
+First need to create a dataframe with both Monetary Aggregates and Inflation.
+```{r}
+dfMonetaryAggregate_Inflation <- data.frame(DATE=MonetaryAggregateM1_US$DATE, Inflation=Inflation_US$Inflation, MonetaryAggregateM1= MonetaryAggregateM1_US$MonetaryAggregate)
+```
+Then transform the Monetary Aggregate (does not make much difference)
+```{r}
+TransformedMonetaryAggregateM1_US <- mutate(dfMonetaryAggregate_Inflation, TransformedMonetaryAggregateM1 = MonetaryAggregateM1-Inflation)
+TransformedMonetaryAggregateM1_US
+```
+Then, change in price level:
+```{r}
+#first need to extend back one period to avoid 0 results
+Inflation_US1 <- InflationUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1989Q3" & DATE<"2003Q4")
+
+TransformedInflation_US <- mutate(Inflation_US1, TransformedInflation = Inflation_US1$Inflation - lag(Inflation_US1$Inflation, default=first(Inflation_US1$Inflation)))
+```
 
 # Step 3: Augemented Dickey-Fuller tests
 
@@ -192,29 +198,6 @@ summary(adf.ExchangeRates)
 ```
 0.0214 >-2.6 therefore cannot reject the unit root
 
-# Transformations of Monetary Aggregate and Inflation
-
-According to the paper, they decided to deal with I(2) processes of Monetary Aggregates and Inflation with considering real money aggregate $m_t - p_t$ and inflation rate as change in $p_t$
-
-First need to create a dataframe with both Monetary Aggregates and Inflation
-
-```{r}
-dfMonetaryAggregate_Inflation <- data.frame(DATE=logMonetaryAggregateM1_US$DATE, logInflation=logInflation_US$logInflation, logMonetaryAggregateM1= logMonetaryAggregateM1_US$logMonetaryAggregateM1)
-dfMonetaryAggregate_Inflation
-```
-
-
-```{r}
-TransformedMonetaryAggregateM1_US <- mutate(dfMonetaryAggregate_Inflation, TransformedMonetaryAggregateM1 = logMonetaryAggregateM1-logInflation)
-TransformedMonetaryAggregateM1_US
-```
-
-Then, change in price level??? we need the previous value to add as a change
-```{r}
-TransformedInflation_US <- mutate(dfMonetaryAggregate_Inflation, TransformedInflation = dfMonetaryAggregate_Inflation$logInflation - lag(dfMonetaryAggregate_Inflation$logInflation, default=first(dfMonetaryAggregate_Inflation$logInflation)))
-TransformedInflation_US
-```
-
 
 # Set up the VAR model
 
@@ -227,20 +210,103 @@ matrix_US <- as.matrix(df_US)
 ```
 Now we have our VAR model in matrix form and data frame form...now we need to check the number of cointegrating relationships, stationarity and white noise residuals.
 
+## Declare time series variables
+
+```{r}
+interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2003, 3), freq=4)
+inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2003,3), freq=4)
+realGDP <- ts(logRealGDP_US$logRealGDP, start=c(1990,1), end=c(2003,3), freq=4)
+exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2003,3), freq=4)
+worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2003,3), freq=4)
+monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, start=c(1990,1), end=c(2003,3), freq=4)
+```
+
+## Plot time series variables
+```{r}
+autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate))
+```
+## ACF & PACF
+```{r}
+acf(interestrate)
+#find first four quarters ie first lag is signif
+pacf(interestrate)
+#find first, second and fourth quarter are signif
+```
+```{r}
+acf(inflation)
+#find no signif lags for either
+pacf(inflation)
+```
+```{r}
+acf(realGDP)
+#lots of persistance, up to the third lag, ie quarter 13
+pacf(realGDP)
+#no autoreg persistance
+```
+```{r}
+acf(monetaryaggregate)
+#up to 7th quarter, ie one lag plus some
+pacf(monetaryaggregate)
+#not much signif
+```
+```{r}
+acf(exchangerate)
+#signif up to 6th quarter, one lag plus some
+pacf(exchangerate)
+# not much
+```
+```{r}
+acf(worldoilprice)
+#one lag
+pacf(worldoilprice)
+#only one quarter, not much
+```
+
+## Find optimal lags
+```{r}
+groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate, worldoilprice)
+colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate", "WorldOilPrice")
+```
+```{r}
+lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
+lagselect$selection
+```
+AIC, HQ and SC tests all suggest 8 lags should be included.
+
+## Build model
+```{r}
+ModelUS <- VAR(groupedVAR, p=8, type="trend", season=NULL, exog=NULL)
+#summary(ModelUS)
+#OVERFITTING?? NOT ENOUGH OBSERVATIONS?
+```
 # Step 4: Johansen Test in the Long-Run Approach
 
 ```{r}
-jotest <- ca.jo(matrix_US, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
-summary(jotest)
-summary(jotest)
+jotestTrace_US <- ca.jo(matrix_US, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotestTrace_US)
+```
+For the trace test, we find one cointegrating relationship.
+
+```{r}
+jotestEigen_US <- ca.jo(matrix_US, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotestEigen_US)
+```
+For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 2 or exceeding it, therefore, we conclude from our estimates that there is one cointegrating relationship.
+
+# Step 5: ACF & PACF? or AIC criteria to choose lags
+
+```{r}
+
 ```
 
-
-# Step 5: AIC criteria to choose lags
 
 # Step 6: Is it stationary?
 
 # Step 7: Are the residuals white noise?
+```{r}
+#ljungbox test
+```
+
 
 # Step 8: Find VECM model by imposing SR contemporaneous effects
 
