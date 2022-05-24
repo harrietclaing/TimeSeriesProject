@@ -219,7 +219,7 @@ TransformedInflation_US
 # Set up the VAR model
 
 ```{r}
-df_US <- data.frame(DATE=logExchangeRates_US$DATE, InterestRate=InterestRates_US$InterestRate, Inflation= TransformedInflation_US$TransformedInflation, RealGDP=logRealGDP_US$logRealGDP, MonetaryAggregate=TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, ExchangeRates=logExchangeRates_US$logExchangeRates, WorldOilPrice=WorldOilPrice_dollars$WorldOilPrice)
+df_US <- data.frame(InterestRate=InterestRates_US$InterestRate, Inflation= TransformedInflation_US$TransformedInflation, RealGDP=logRealGDP_US$logRealGDP, MonetaryAggregate=TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, ExchangeRates=logExchangeRates_US$logExchangeRates, WorldOilPrice=WorldOilPrice_dollars$WorldOilPrice)
 
 matrix_US <- as.matrix(df_US)
 
@@ -230,11 +230,19 @@ Now we have our VAR model in matrix form and data frame form...now we need to ch
 # Step 4: Johansen Test in the Long-Run Approach
 
 ```{r}
-?ca.jo
-jotest <- ca.jo(df_US, type="trace", K=2, ecdet="none", spec="longrun")
+jotest <- ca.jo(matrix_US, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotest)
 summary(jotest)
 ```
 
 
 # Step 5: AIC criteria to choose lags
+
+# Step 6: Is it stationary?
+
+# Step 7: Are the residuals white noise?
+
+# Step 8: Find VECM model by imposing SR contemporaneous effects
+
+# Step 9: Test model specification using congruency, parsimony, lag inclusion...
 
