@@ -1,14 +1,112 @@
 ---
-title: "TimeSeries Project"
-output: html_document
+# IMPORTANT: Change settings here, but DO NOT change the spacing.
+# Remove comments and add values where applicable.
+# The descriptions below should be self-explanatory
+
+title: "How do oil price changes impact economic variables in the period 1990 to 2017: A Replication of the Cologni & Manera paper"
+#subtitle: "This will appear as Right Header"
+
+documentclass: "elsarticle"
+
+# --------- Thesis title (Optional - set to FALSE by default).
+# You can move the details below around as you please.
+Thesis_FP: FALSE
+# Entry1: "An unbelievable study with a title spanning multiple lines."
+# Entry2: "\\textbf{Nico Katzke}" # textbf for bold
+# Entry3: "A thesis submitted toward the degree of Doctor of Philosophy"
+# Uni_Logo: Tex/Logo.png # Place a logo in the indicated location (from your root, e.g. defaults to ~/Tex/Logo.png) and uncomment this line. Leave uncommented for no image
+# Logo_width: 0.3 # If using a logo - use this to set width (size) of image
+# Entry4: "Under the supervision of: \\vfill Prof. Joe Smith and Dr. Frank Smith"
+# Entry5: "Stellenbosch University"
+# Entry6: April 2020
+# Entry7:
+# Entry8:
+
+# --------- Front Page
+# Comment: ----- Follow this pattern for up to 5 authors
+AddTitle: TRUE # Use FALSE when submitting to peer reviewed platform. This will remove author names.
+Author1: "Harriet Catherine Laing"  # First Author - note the thanks message displayed as an italic footnote of first page.
+Ref1: "Stellenbosch University, Stellenbosch, South Africa" # First Author's Affiliation
+Email1: "21617023\\@sun.ac.za" # First Author's Email address
+
+#Author2: "John Smith"
+#Ref2: "Some other Institution, Cape Town, South Africa"
+#Email2: "John\\@gmail.com"
+#CommonAffiliation_12: TRUE # If Author 1 and 2 have a common affiliation. Works with _13, _23, etc.
+
+#Author3: "John Doe"
+#Email3: "Joe\\@gmail.com"
+
+#CorrespAuthor_1: TRUE  # If corresponding author is author 3, e.g., use CorrespAuthor_3: TRUE
+
+# Comment out below to remove both. JEL Codes only given if keywords also given.
+#keywords: "Multivariate GARCH \\sep Kalman Filter \\sep Copula" # Use \\sep to separate
+#JELCodes: "L250 \\sep L100"
+
+# ----- Manage headers and footers:
+#BottomLFooter: $Title$
+#BottomCFooter:
+#TopLHeader: \leftmark # Adds section name at topleft. Remove comment to add it.
+BottomRFooter: "\\footnotesize Page \\thepage" # Add a '#' before this line to remove footer.
+#addtoprule: TRUE
+#addfootrule: TRUE               # Use if footers added. Add '#' to remove line.
+
+# --------- page margins:
+margin: 2.3 # Sides
+bottom: 2 # bottom
+top: 2.5 # Top
+HardSet_layout: TRUE # Hard-set the spacing of words in your document. This will stop LaTeX squashing text to fit on pages, e.g.
+# This is done by hard-setting the spacing dimensions. Set to FALSE if you want LaTeX to optimize this for your paper.
+
+# --------- Line numbers
+linenumbers: FALSE # Used when submitting to journal
+
+# ---------- References settings:
+# You can download cls format here: https://www.zotero.org/ - simply search for your institution. You can also edit and save cls formats here: https://editor.citationstyles.org/about/
+# Hit download, store it in Tex/ folder, and change reference below - easy.
+bibliography: Tex/ref.bib       # Do not edit: Keep this naming convention and location.
+csl: Tex/harvard-stellenbosch-university.csl # referencing format used.
+# By default, the bibliography only displays the cited references. If you want to change this, you can comment out one of the following:
+#nocite: '@*' # Add all items in bibliography, whether cited or not
+# nocite: |  # add specific references that aren't cited
+#  @grinold2000
+#  @Someoneelse2010
+
+# ---------- General:
+RemovePreprintSubmittedTo: TRUE  # Removes the 'preprint submitted to...' at bottom of titlepage
+#Journal: "Journal of Finance"   # Journal that the paper will be submitting to, if RemovePreprintSubmittedTo is set to TRUE.
+toc: FALSE                       # Add a table of contents
+numbersections: TRUE             # Should sections (and thus figures and tables) be numbered?
+fontsize: 11pt                  # Set fontsize
+linestretch: 1.2                # Set distance between lines.
+#link-citations: TRUE            # This creates dynamic links to the papers in reference list.
+
+### Adding additional latex packages:
+# header-includes:
+#    - \usepackage{colortbl} # Add additional packages here.
+
+output:
+  pdf_document:
+    keep_tex: TRUE
+    template: Tex/TexDefault.txt
+    fig_width: 3.5 # Adjust default figure sizes. This can also be done in the chunks of the text.
+    fig_height: 3.5
+#abstract: |
+ # Abstract to be written here. The abstract should not be too long and should provide the reader with a good understanding what you are writing about. Academic papers are not like novels where you keep the reader in suspense. To be effective in getting others to read your paper, be as open and concise about your findings here as possible. Ideally, upon reading your abstract, the reader should feel he / she must read your paper in entirety.
 ---
 
-# Purpose
-To replicate the study by Cologni & Manera to find the economic impact of a rise in oil prices.
+<!-- First: Set your default preferences for chunk options: -->
 
-```{r}
-rm(list = ls()) # Clean your environment:
-gc() # garbage collection - It can be useful to call gc after a large object has been removed, as this may prompt R to return memory to the operating system.
+<!-- If you want a chunk's code to be printed, set echo = TRUE. message = FALSE stops R printing ugly package loading details in your final paper too. I also suggest setting warning = FALSE and checking for warnings in R, else you might find ugly warnings in your paper. -->
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 5, fig.height = 4, fig.align='center', fig.pos="H", fig.pos = 'H')
+# Note: Include = FALSE implies the code is executed, but not printed in your pdf.
+# warning and message = FALSE implies ugly messages and warnings are removed from your pdf.
+# These should be picked up when you execute the command chunks (code sections below) in your rmd, not printed in your paper!
+
+# Lets load in example data, and see how this can be stored and later called from your 'data' folder.
+if(!require("tidyverse")) install.packages("tidyverse")
 library(tidyverse)
 library(zoo)
 library(tseries)
@@ -19,7 +117,120 @@ library(ggplot2)
 library(ggfortify)
 library(pracma)
 library(readr)
+library(Hmisc)
+library(wordcountaddin)
+library(Texevier)
+library(rmarkdown)
+wordcountaddin::word_count("README.Rmd")
+
+ExchangeRate <- read_csv("data/ExchangeRate.csv")
+GlobalPriceofBrentCrudeUSDollars <- read_csv("data/GlobalPriceofBrentCrudeUSDollars.csv")
+Inflation <- read_csv("data/Inflation.csv")
+InterestRate <- read_csv("data/InterestRate.csv")
+MonetaryAggregate <- read_csv("data/MonetaryAggregate.csv")
+RealGDP <- read_csv("data/RealGDP.csv")
+
+#convert monthly to quarterly & change
+ 
+
+WorldOilPricedollars <- GlobalPriceofBrentCrudeUSDollars %>% 
+                        group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q"))%>%
+                        summarise_all(mean) %>% 
+                        filter(DATE>"1979Q4" & DATE<"2017Q1")
+
+WorldOilPrice_dollars <- data.frame(DATE=WorldOilPricedollars$DATE, WorldOilPrice=WorldOilPricedollars$POILBREUSDM)
+
+#rename column in dataframe
+InterestRateUS_ <- rename(InterestRate, InterestRate=FEDFUNDS)
+
+#convert monthly to quarterly
+
+InterestRates_US <- InterestRateUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1989Q4" & DATE<"2017Q1")
+#we want to filter to get the correct time frame
+
+#rename column in dataframe
+InflationUS_ <- rename(Inflation, Inflation=CPIAUCSL)
+
+#convert monthly to quarterly
+
+Inflation_US <- InflationUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1989Q4" & DATE<"2017Q1") #one period back to get a change later on
+#we want to filter to get the correct time frame
+
+#rename column in dataframe
+MonetaryAggregateM1US_ <- rename(MonetaryAggregate, MonetaryAggregate=MYAGM1USM052S)
+
+#convert monthly to quarterly
+
+MonetaryAggregateM1_US <- MonetaryAggregateM1US_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1989Q4" & DATE<"2017Q1")
+#we want to filter to get the correct time frame
+
+#rename column in dataframe
+ExchangeRatesOECDUS_ <- rename(ExchangeRate, ExchangeRate=FGSDRSQ027S)
+
+#convert monthly to quarterly
+
+ExchangeRates_US <- ExchangeRatesOECDUS_ %>% 
+    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+    summarise_all(mean) %>% 
+    filter(DATE>"1989Q4" & DATE<"2017Q1")
+#we want to filter to get the correct time frame
+
+#rename column in dataframe
+RealGDPUS_ <- rename(RealGDP, RealGDP=NGDPRSAXDCUSQ)
+
+RealGDP_US <- RealGDPUS_ %>% 
+                group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
+                filter(DATE>"1989Q4" & DATE<"2017Q1")
+#we want to filter to get the correct time frame
+
+logRealGDP_US <- data.frame(DATE=RealGDP_US$DATE, logRealGDP=log(RealGDP_US$RealGDP))
+logExchangeRates_US <-data.frame(DATE=ExchangeRates_US$DATE, logExchangeRates=log(ExchangeRates_US$ExchangeRate))
+logWorldOilPrice <- data.frame(DATE=WorldOilPrice_dollars$DATE, logWorldOilPrice=log(WorldOilPrice_dollars$WorldOilPrice))
+logInflation_US <- data.frame(DATE=Inflation_US$DATE, logInflation=log(Inflation_US$Inflation))
+logMonetaryAggregateM1_US <- data.frame(DATE=MonetaryAggregateM1_US$DATE, logMonetaryAggregateM1_US=log(MonetaryAggregateM1_US$MonetaryAggregate))
+
+dfMonetaryAggregate_Inflation <- data.frame(DATE=MonetaryAggregateM1_US$DATE, logInflation=logInflation_US$logInflation, logMonetaryAggregateM1= logMonetaryAggregateM1_US$logMonetaryAggregate)
+
+TransformedMonetaryAggregateM1_US <- mutate(dfMonetaryAggregate_Inflation, TransformedMonetaryAggregateM1 = logMonetaryAggregateM1-logInflation)
+
+TransformedInflation_US <- mutate(logInflation_US, TransformedInflation = logInflation_US$logInflation - lag(logInflation_US$logInflation, default=first(logInflation_US$logInflation)))
+#0 for the first period
+
+DetrendedlogRealGDP <- detrend(logRealGDP_US$logRealGDP)
+DetrendedTransformedMonetary <- detrend(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1)
+
+interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2016, 4), freq=4)
+inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2016, 4), freq=4)
+realGDP <- ts(DetrendedlogRealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
+exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2016, 4), freq=4)
+worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2016, 4), freq=4)
+monetaryaggregate <- ts(DetrendedTransformedMonetary, start=c(1990,1), end=c(2016, 4), freq=4)
+
+# Notice that as you are working in a .Rproj file (I am assuming you are) - the relative paths of your directories start at your specified root.
+# This means that when working in a .Rproj file, you never need to use getwd() - it is assumed as your base root automatically.
+#write_rds(Dataset_Loan_amounts, path = "data/Dataset_Loan_amounts.xlsx")
 ```
+
+
+<!-- ############################## -->
+<!-- # Start Writing here: -->
+<!-- ############################## -->
+
+# Introduction \label{Introduction}
+
+
+# Purpose
+To replicate the study by Cologni & Manera to find the economic impact of a rise in oil prices.
+
 # Step 1: Find the data
 
 Tried to find all data from the IMF, but for Exchange Rates had to use OECD estimates and for Inflation had to use US Bureau of Labor Statistics. First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. World oil price: could only find from 1990, therefore had to limit to 1990 onwards.
@@ -32,135 +243,79 @@ Monetary Aggregate = Dollars, Seasonally Adjusted, monthly source: IMF
 World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF
 
 Need to do until 2017 because of monetary aggregate data constraints
-```{r}
-ExchangeRate <- read_csv("data/ExchangeRate.csv")
-GlobalPriceofBrentCrudeUSDollars <- read_csv("data/GlobalPriceofBrentCrudeUSDollars.csv")
-Inflation <- read_csv("data/Inflation.csv")
-InterestRate <- read_csv("data/InterestRate.csv")
-MonetaryAggregate <- read_csv("data/MonetaryAggregate.csv")
-RealGDP <- read_csv("data/RealGDP.csv")
-```
 
-```{r}
-#convert monthly to quarterly & change
- 
+As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. 
 
-WorldOilPricedollars <- GlobalPriceofBrentCrudeUSDollars %>% 
-                        group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q"))%>%
-                        summarise_all(mean) %>% 
-                        filter(DATE>"1979Q4" & DATE<"2017Q1")
+Intially found that matrix was computationally singular, therefore, needed to change matrix so it could be invertible.
 
-WorldOilPrice_dollars <- data.frame(DATE=WorldOilPricedollars$DATE, WorldOilPrice=WorldOilPricedollars$POILBREUSDM)
-```
-Interest rates ($r_t$)
-```{r}
-#rename column in dataframe
-InterestRateUS_ <- rename(InterestRate, InterestRate=FEDFUNDS)
+Let us check for multicollinearity and found all variables were correlated and statistically significant. Tried to test correlation if did not transform monetary aggregate and inflation as paper did, but still highly correlated.
 
-#convert monthly to quarterly
-
-InterestRates_US <- InterestRateUS_ %>% 
-    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
-    summarise_all(mean) %>% 
-    filter(DATE>"1989Q4" & DATE<"2017Q1")
-#we want to filter to get the correct time frame
-```
-Inflation ($p_t$)
-```{r}
-#rename column in dataframe
-InflationUS_ <- rename(Inflation, Inflation=CPIAUCSL)
-
-#convert monthly to quarterly
-
-Inflation_US <- InflationUS_ %>% 
-    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
-    summarise_all(mean) %>% 
-    filter(DATE>"1989Q4" & DATE<"2017Q1") #one period back to get a change later on
-#we want to filter to get the correct time frame
-```
-Monetary aggregates ($M_t$)
-```{r}
-#rename column in dataframe
-MonetaryAggregateM1US_ <- rename(MonetaryAggregate, MonetaryAggregate=MYAGM1USM052S)
-
-#convert monthly to quarterly
-
-MonetaryAggregateM1_US <- MonetaryAggregateM1US_ %>% 
-    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
-    summarise_all(mean) %>% 
-    filter(DATE>"1989Q4" & DATE<"2017Q1")
-#we want to filter to get the correct time frame
-```
-Exchange rates ($e_t$)
-```{r}
-#rename column in dataframe
-ExchangeRatesOECDUS_ <- rename(ExchangeRate, ExchangeRate=FGSDRSQ027S)
-
-#convert monthly to quarterly
-
-ExchangeRates_US <- ExchangeRatesOECDUS_ %>% 
-    group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
-    summarise_all(mean) %>% 
-    filter(DATE>"1989Q4" & DATE<"2017Q1")
-#we want to filter to get the correct time frame
-```
-For real GDP, we have quarterly, so we will need to simply isolate the time period.
-```{r}
-#rename column in dataframe
-RealGDPUS_ <- rename(RealGDP, RealGDP=NGDPRSAXDCUSQ)
-
-RealGDP_US <- RealGDPUS_ %>% 
-                group_by(DATE = format(as.yearqtr(DATE, "%b-%Y"), "%YQ%q")) %>%
-                filter(DATE>"1989Q4" & DATE<"2017Q1")
-#we want to filter to get the correct time frame
-```
-
-# Step 2: Transform the data 
-
-Next step is to transform all variables in logs, except for the interest rate. 
-
-```{r}
-logRealGDP_US <- data.frame(DATE=RealGDP_US$DATE, logRealGDP=log(RealGDP_US$RealGDP))
-logExchangeRates_US <-data.frame(DATE=ExchangeRates_US$DATE, logExchangeRates=log(ExchangeRates_US$ExchangeRate))
-logWorldOilPrice <- data.frame(DATE=WorldOilPrice_dollars$DATE, logWorldOilPrice=log(WorldOilPrice_dollars$WorldOilPrice))
-logInflation_US <- data.frame(DATE=Inflation_US$DATE, logInflation=log(Inflation_US$Inflation))
-logMonetaryAggregateM1_US <- data.frame(DATE=MonetaryAggregateM1_US$DATE, logMonetaryAggregateM1_US=log(MonetaryAggregateM1_US$MonetaryAggregate))
-```
-
-But according to the paper, different transformations for the I(2) series of Monetary Aggregates and Inflation. The plot for logInflation and Inflation both show almost identical linear upward trends.
-
-First need to create a dataframe with both Monetary Aggregates and Inflation.
-```{r}
-dfMonetaryAggregate_Inflation <- data.frame(DATE=MonetaryAggregateM1_US$DATE, logInflation=logInflation_US$logInflation, logMonetaryAggregateM1= logMonetaryAggregateM1_US$logMonetaryAggregate)
-```
-Then transform the Monetary Aggregate 
-```{r}
-TransformedMonetaryAggregateM1_US <- mutate(dfMonetaryAggregate_Inflation, TransformedMonetaryAggregateM1 = logMonetaryAggregateM1-logInflation)
-```
-Then, change in price level:
-```{r}
-TransformedInflation_US <- mutate(logInflation_US, TransformedInflation = logInflation_US$logInflation - lag(logInflation_US$logInflation, default=first(logInflation_US$logInflation)))
-#0 for the first period
-```
+Could only overcome this error by detrending GDP and monetary aggregate.
 
 #Step 3: Find number of lags for the system
 
 First, set up the system of time series variables
-
-## Declare time series variables
-
 ```{r}
-interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2016, 4), freq=4)
-inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2016, 4), freq=4)
-realGDP <- ts(RealGDP_US$RealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
-exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2016, 4), freq=4)
-worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2016, 4), freq=4)
-monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, start=c(1990,1), end=c(2016, 4), freq=4)
+autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL, )
+autoplot
 ```
 
-## Plot time series variables
+
 ```{r}
-autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
+groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate, worldoilprice)
+colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate", "WorldOilPrice")
+```
+```{r}
+lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
+lagselect$selection
+?VARselect
+
+#paper uses AIC criteria...lag - 1
+```
+
+```{r}
+groupedVARendog <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate)
+colnames(groupedVARendog) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate")
+```
+```{r}
+lagselect <- VARselect(groupedVARendog, lag.max=10, type="trend", exogen= worldoilprice)
+lagselect$selection
+
+#paper uses AIC criteria...lag - 1
+```
+Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 9 so we use 8...overparameterised...
+
+# Step 4: Johansen Test in the Long-Run Approach
+
+```{r}
+jotestEigen_US <- ca.jo(groupedVARendog, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotestEigen_US)
+```
+
+```{r}
+jotestTrace_US <- ca.jo(groupedVARendog, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotestTrace_US)
+```
+
+
+For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 2 or exceeding it, therefore, we conclude from our estimates that there is one cointegrating relationship.
+
+We obtain the cointegrating vectors from the Johansen test using:
+You can extract the cointegrating vectors by addressing the slot V by @V like sjd.vecm@V. This will be a matrix where each column is a cointegrating vector. You can multiply the original multivariate series (like sjd) to the V matrix to get the error correction terms.
+```{r}
+cointegrating_vectors <- jotestEigen_US@V # to get a matrix where each column
+```
+
+Check if the cointegrating relationships are trending and not random walks, show graphically the cointegrating vectors
+
+```{r}
+autoplot(cointegrating_vectors, label=NULL)
+```
+
+
+```{r}
+#groupedVARendogmatrix <- as.matrix(groupedVARendog)
+#error_correction_terms <- cointegrating_vectors*groupedVARendogmatrix #matrix has headings...
 ```
 
 
@@ -168,67 +323,115 @@ autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, mo
 
 The null-hypothesis of an Augmented Dickey-Fuller test is that the series has a unit-root. We ask, is the estimated critical value small enough to reject the null-hypothesis? If yes, we cannot reject the null hypothesis, therefore, the series may be non-stationary.
 
+In this section, we find that the interest rate is stationary, change in inflation is stationary, detrended real GDP is still not stationary, detrended monetary aggregate is still non-stationary and world oil price is non stationary.
+
 Interest Rate
 ```{r}
 #let us visualise first
 ggplot() +
-    geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate))
+    geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate)) +
+    xlab("Years") +
+    ylab("Interest Rate") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Interest rates") +
+    theme(axis.text.x = element_blank())
 ```
 The estimated critical value for the Augmented Dickey Fuller test for the interest rate is small enough to reject the null hypothesis at 5% confidence interval = -2.2403<-1.95, therefore, may be a stationary series.
 
 ```{r}
 ggplot() +
-    geom_point(aes(TransformedInflation_US$DATE, TransformedInflation_US$TransformedInflation))
+    geom_point(aes(TransformedInflation_US$DATE, TransformedInflation_US$TransformedInflation))+
+    xlab("Years") +
+    ylab("Inflation (change in inflation)") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Inflation") +
+    theme(axis.text.x = element_blank())
 ```
 
-The estimated critical value of -3.4624 for inflation is small enough to reject the null hypothesis at 1% confidence interval, -3.4624<-2.58. Therefore cannot reject the null hypothesis that there is a unit root and series may be stationary.
+The estimated critical value of -3.4624 for inflation is small enough to reject the null hypothesis at 1% confidence interval, -3.4624<-2.58. Therefore can reject the null hypothesis that there is a unit root and series may be stationary.
 
 ```{r}
 ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))
+    geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))+
+    xlab("Years") +
+    ylab("Real GDP") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Real GDP") +
+    theme(axis.text.x = element_blank())
 ```
 Think we should detrend, because seems to be a clear upward linear trend
-```{r}
-DetrendedlogRealGDP <- detrend(logRealGDP_US$logRealGDP)
-```
-```{r}
-ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, DetrendedlogRealGDP))
-```
-Detrended Real GDP series is still non-stationary, therefore must use differencing.
-
-```{r}
-TransformedRealGDP_US <- mutate(logRealGDP_US, TransformedRealGDP = logRealGDP_US$logRealGDP - lag(logRealGDP_US$logRealGDP, default=first(logRealGDP_US$logRealGDP)))
-```
-```{r}
-ggplot() +
-    geom_point(aes(TransformedRealGDP_US$DATE, TransformedRealGDP_US$TransformedRealGDP))
-```
-The estimated critical value is small enough to reject the null hypothesis of a unit root for real GDP using Augmented Dickey Fuller test, -2.7578<-2.58.
 
 ```{r}
 ggplot() +
-    geom_point(aes(TransformedMonetaryAggregateM1_US$DATE, TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1))
+    geom_point(aes(logRealGDP_US$DATE, DetrendedlogRealGDP))+
+    xlab("Years") +
+    ylab("Real GDP (detrended)") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Real GDP (detrended)") +
+    theme(axis.text.x = element_blank())
+```
+Detrended Real GDP series is still non-stationary. But cannot first difference it in case remove important information.
+
+```{r}
+#TransformedRealGDP_US <- mutate(logRealGDP_US, TransformedRealGDP = logRealGDP_US$logRealGDP - lag(logRealGDP_US$logRealGDP, default=first(logRealGDP_US$logRealGDP)))
+```
+```{r}
+#ggplot() +
+    #geom_point(aes(TransformedRealGDP_US$DATE, TransformedRealGDP_US$TransformedRealGDP))
+```
+
+
+```{r}
+ggplot() +
+    geom_point(aes(TransformedMonetaryAggregateM1_US$DATE, TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1))+
+    xlab("Years") +
+    ylab("Monetary Aggregate") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Monetary Aggregate") +
+    theme(axis.text.x = element_blank())
 ```
 No clear trend for the Transformed Monetary Aggregate...try difference? cannot because then all values go to zero
 
-```{r}
-ggplot() +
-    geom_point(aes(logExchangeRates_US$DATE, TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1))
-
-```
-
-Small enough! to reject null hypothesis of monetary aggregate: -4.4214 < -2.58 at 1% confidence interval
+Think we should detrend, because seems to be a clear upward linear trend
 
 ```{r}
 ggplot() +
-    geom_point(aes(logExchangeRates_US$DATE, logExchangeRates_US$logExchangeRates))
+    geom_point(aes(logRealGDP_US$DATE, DetrendedTransformedMonetary)) +
+    xlab("Years") +
+    ylab("Monetary Aggregate (detrended)") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Monetary Aggregate (detrended)") +
+    theme(axis.text.x = element_blank())
 ```
+Detrended Monetary Aggregate is still non-stationary because cannot reject null hypothesis.
+
 ```{r}
 ggplot() +
-    geom_point(aes(logWorldOilPrice$DATE, logWorldOilPrice$logWorldOilPrice))
+    geom_point(aes(logExchangeRates_US$DATE, logExchangeRates_US$logExchangeRates))+
+    xlab("Years") +
+    ylab("Exchange Rate") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Exchange Rate") +
+    theme(axis.text.x = element_blank())
 ```
 
+Let us try first difference the exchange rate.
+```{r}
+DifferencedExchangeRate = logExchangeRates_US$logExchangeRates - lag(logExchangeRates_US$logExchangeRates)
+```
+This does not work because it makes the series have no variation, removes too much information.
+
+```{r}
+ggplot() +
+    geom_point(aes(logWorldOilPrice$DATE, logWorldOilPrice$logWorldOilPrice))+
+    xlab("Years") +
+    ylab("World Oil Price") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "World Oil Price") +
+    theme(axis.text.x = element_blank())
+```
+
+# Step: Check if cointegrating relationships are trending and not random walks
 
 ```{r}
 adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type="none", selectlags = c("AIC"))
@@ -249,7 +452,7 @@ summary(adf.RealGDP)
 Monetary Aggregates
 
 ```{r}
-adf.MonetaryAggregate <- ur.df(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, type = "none", selectlags = c("AIC"))
+adf.MonetaryAggregate <- ur.df(DetrendedTransformedMonetary, type = "none", selectlags = c("AIC"))
 summary(adf.MonetaryAggregate)
 ```
 Exchange Rate
@@ -300,24 +503,16 @@ acf(worldoilprice)
 pacf(worldoilprice)
 ```
 
-## Find optimal lags
-```{r}
-groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate, worldoilprice)
-colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate", "WorldOilPrice")
-```
-```{r}
-lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
-lagselect$selection
-```
-Lag selection not very consistent...go with 4
-
-
 
 ## Build model
 ```{r}
-ModelUS <- VAR(groupedVAR, p=3, type="trend", season=NULL, exog=NULL)
+ModelUS <- VAR(groupedVARendog, p=3, type="trend", season=NULL, exog=NULL)
 summary(ModelUS)
 #OVERFITTING?? NOT ENOUGH OBSERVATIONS?
+```
+```{r}
+
+ModelUSJo <- ca.jo(groupedVARmatrix, type="eigen", K=2, ecdet="trend", spec="longrun")
 ```
 
 
@@ -337,31 +532,23 @@ summary(ModelUS)
 
 If we excluded exchange rates...
 ```{r}
-groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, worldoilprice)
-colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "WorldOilPrice")
+groupedVARexchange <- cbind(interestrate, inflation, realGDP, monetaryaggregate, worldoilprice)
+colnames(groupedVARexchange) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "WorldOilPrice")
 ```
 ```{r}
-lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
+lagselect <- VARselect(groupedVARexchange, lag.max=10, type="trend")
 lagselect$selection
 
-ModelUS <- VAR(groupedVAR, p=2, type="trend", season=NULL, exog=NULL)
+ModelUS <- VAR(groupedVARexchange, p=1, type="trend", season=NULL, exog=NULL)
 summary(ModelUS)
 ```
-
-
-# Step 4: Johansen Test in the Long-Run Approach
-
 ```{r}
-jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
-summary(jotestTrace_US)
+groupedVARexchangematrix <- as.matrix(groupedVARexchange)
+ModelUSJoExch <- ca.jo(groupedVARexchangematrix, type="eigen", K=2, ecdet="trend", spec="longrun")
 ```
-For the trace test, we find one cointegrating relationship.
 
-```{r}
-jotestEigen_US <- ca.jo(matrix_US, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
-summary(jotestEigen_US)
-```
-For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 2 or exceeding it, therefore, we conclude from our estimates that there is one cointegrating relationship.
+
+
 
 # Step 5: ACF & PACF? or AIC criteria to choose lags
 
@@ -382,3 +569,7 @@ For the eigenvalue test, we find that we can reject the null hypothesis of the n
 
 # Step 9: Test model specification using congruency, parsimony, lag inclusion...
 
+# Appendix {-}
+
+# Regression 1 {-}
+![Alt Text](/Users/Harriet/Documents/Economic History/ESSAY/Texevier_History_Essay/HistoryEssay/data/Reg1.jpg)
