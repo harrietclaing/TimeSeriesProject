@@ -18,6 +18,7 @@ library(AICcmodavg)
 library(ggplot2)
 library(ggfortify)
 library(pracma)
+library(readr)
 ```
 # Step 1: Find the data
 
@@ -31,6 +32,14 @@ Monetary Aggregate = Dollars, Seasonally Adjusted, monthly source: IMF
 World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF
 
 Need to do until 2017 because of monetary aggregate data constraints
+```{r}
+ExchangeRate <- read_csv("data/ExchangeRate.csv")
+GlobalPriceofBrentCrudeUSDollars <- read_csv("data/GlobalPriceofBrentCrudeUSDollars.csv")
+Inflation <- read_csv("data/Inflation.csv")
+InterestRate <- read_csv("data/InterestRate.csv")
+MonetaryAggregate <- read_csv("data/MonetaryAggregate.csv")
+RealGDP <- read_csv("data/RealGDP.csv")
+```
 
 ```{r}
 #convert monthly to quarterly & change
@@ -124,16 +133,36 @@ First need to create a dataframe with both Monetary Aggregates and Inflation.
 ```{r}
 dfMonetaryAggregate_Inflation <- data.frame(DATE=MonetaryAggregateM1_US$DATE, logInflation=logInflation_US$logInflation, logMonetaryAggregateM1= logMonetaryAggregateM1_US$logMonetaryAggregate)
 ```
-Then transform the Monetary Aggregate (does not make much difference)
+Then transform the Monetary Aggregate 
 ```{r}
 TransformedMonetaryAggregateM1_US <- mutate(dfMonetaryAggregate_Inflation, TransformedMonetaryAggregateM1 = logMonetaryAggregateM1-logInflation)
-TransformedMonetaryAggregateM1_US
 ```
 Then, change in price level:
 ```{r}
 TransformedInflation_US <- mutate(logInflation_US, TransformedInflation = logInflation_US$logInflation - lag(logInflation_US$logInflation, default=first(logInflation_US$logInflation)))
 #0 for the first period
 ```
+
+#Step 3: Find number of lags for the system
+
+First, set up the system of time series variables
+
+## Declare time series variables
+
+```{r}
+interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2016, 4), freq=4)
+inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2016, 4), freq=4)
+realGDP <- ts(RealGDP_US$RealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
+exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2016, 4), freq=4)
+worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2016, 4), freq=4)
+monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, start=c(1990,1), end=c(2016, 4), freq=4)
+```
+
+## Plot time series variables
+```{r}
+autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
+```
+
 
 # Step 3: Augemented Dickey-Fuller tests
 
@@ -240,22 +269,6 @@ summary(adf.WorldOilPrice)
 
 # Set up the VAR model
 
-## Declare time series variables
-
-```{r}
-interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2016, 4), freq=4)
-inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2016, 4), freq=4)
-realGDP <- ts(TransformedRealGDP_US$TransformedRealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
-exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2016, 4), freq=4)
-worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2016, 4), freq=4)
-monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, start=c(1990,1), end=c(2016, 4), freq=4)
-```
-
-## Plot time series variables
-```{r}
-autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
-
-```
 ## ACF & PACF
 ```{r}
 acf(interestrate)
