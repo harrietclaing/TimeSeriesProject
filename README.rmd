@@ -210,10 +210,10 @@ DetrendedTransformedMonetary <- detrend(TransformedMonetaryAggregateM1_US$Transf
 
 interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2016, 4), freq=4)
 inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2016, 4), freq=4)
-realGDP <- ts(DetrendedlogRealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
+realGDP <- ts(logRealGDP_US$logRealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
 exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2016, 4), freq=4)
 worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2016, 4), freq=4)
-monetaryaggregate <- ts(DetrendedTransformedMonetary, start=c(1990,1), end=c(2016, 4), freq=4)
+monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1, start=c(1990,1), end=c(2016, 4), freq=4)
 
 # Notice that as you are working in a .Rproj file (I am assuming you are) - the relative paths of your directories start at your specified root.
 # This means that when working in a .Rproj file, you never need to use getwd() - it is assumed as your base root automatically.
@@ -227,9 +227,12 @@ monetaryaggregate <- ts(DetrendedTransformedMonetary, start=c(1990,1), end=c(201
 
 # Introduction \label{Introduction}
 
-
-# Purpose
 To replicate the study by Cologni & Manera to find the economic impact of a rise in oil prices.
+
+# Background
+
+# Replication methodology & results
+
 
 # Step 1: Find the data
 
@@ -240,23 +243,22 @@ Exchange Rate= Millions of Dollars, Not Seasonally Adjusted, quarterly, source: 
 Inflation = Index 1982-1984=100, Seasonally Adjusted, monthly, source  U.S. Bureau of Labor Statistics
 Real GDP = Domestic Currency, Seasonally Adjusted, quarterly, source IMF
 Monetary Aggregate = Dollars, Seasonally Adjusted, monthly source: IMF
-World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF
+World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF. Need to do until 2017 because of monetary aggregate data constraints
 
-Need to do until 2017 because of monetary aggregate data constraints
+The methodology that I applied in order to replicate the study, was to first transform all of the quarterly series in logarithms except for the interest rate. As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. Findings were that...
 
-As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. 
+Whereas the paper found that interest rates, real GDP, exchange rates and the world oil price was integrated of order 1, whereas the monetary aggregate and inflation were found to be integrated of order 2. I then followed the paper by transforming these variables that were integrated of order 2 by using the real monetary aggregate (by taking the difference between the logarithm of monetary aggregate and the logarithm of inflation) and then using the change in logarithm inflation instead of logarithm of inflation.
 
-Intially found that matrix was computationally singular, therefore, needed to change matrix so it could be invertible.
+Intially found that matrix was computationally singular, therefore, needed to change matrix so it could be invertible. Let us check for multicollinearity and found all variables were correlated and statistically significant. Tried to test correlation if did not transform monetary aggregate and inflation as paper did, but still highly correlated.
 
-Let us check for multicollinearity and found all variables were correlated and statistically significant. Tried to test correlation if did not transform monetary aggregate and inflation as paper did, but still highly correlated.
+Perhaps, because in the paper they used predominantly seasonally-adjusted data but due to constraints on availability of data, for this replication I used a combination of seasonally-adjusted and not seasonally-adjusted.
 
-Could only overcome this error by detrending GDP and monetary aggregate.
+Could only overcome this error by detrending GDP and monetary aggregate. Therefore, our VAR system includes all the endogenous variables of interest rate, inflation, exchange rate, monetary aggregate and real GDP. In the following section, the exogenous variable of world oil prices and the time trend will be accounted for in the test for cointegration.
 
-#Step 3: Find number of lags for the system
+Resultant time series variables were as follows:
 
-First, set up the system of time series variables
 ```{r}
-autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL, )
+autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
 autoplot
 ```
 
@@ -268,7 +270,6 @@ colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryA
 ```{r}
 lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
 lagselect$selection
-?VARselect
 
 #paper uses AIC criteria...lag - 1
 ```
@@ -283,34 +284,70 @@ lagselect$selection
 
 #paper uses AIC criteria...lag - 1
 ```
-Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 9 so we use 8...overparameterised...
+Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 9 so we use 8. As can be seen in Figure 1, there is clearly a lot of persistance after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008.
 
-# Step 4: Johansen Test in the Long-Run Approach
+Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test.
 
+For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 3 or exceeding it at the 5% confidence interval where our critical value is smaller than the test statistic. For the trace test, we find that we can reject the null hypothesis when the relationships equal or exceed 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal (25.71 critcal value marginally larger than 25.54 test statistic), we conclude from our estimates that there is likely one cointegrating relationship. This is the same result as is found for the US in Cologni & Manera.
+
+We obtain the cointegrating vectors from the Johansen test and construct a matrix is which each column is a cointegrating vector. Then we multiply the VAR system by the cointegrating vector matrix to obtain the error correction terms.
+ 
 ```{r}
-jotestEigen_US <- ca.jo(groupedVARendog, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
-summary(jotestEigen_US)
+cointegrating_vectors <- jotestEigen_US@V
+# to get a matrix where each column
+
+colnames(cointegrating_vectors)<-NULL
+rownames(cointegrating_vectors) <- NULL
+
+#get each cointegrating vector alone
+cointegrating_vectors
+
+InterestRateCV <- cointegrating_vectors[,1]
+InterestRateCV
+
+InflationCV <- cointegrating_vectors[,2]
+InflationCV
+
+RealGDPCV <- cointegrating_vectors[,3]
+
+MoneyCV <- cointegrating_vectors[,4]
+
+ExchangeRateCV <- cointegrating_vectors[,5]
+
+TrendCV <- cointegrating_vectors[,6]
 ```
 
+Check if the cointegrating relationships are trending and not random walks, by first testing for stationarity.
 ```{r}
-jotestTrace_US <- ca.jo(groupedVARendog, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
-summary(jotestTrace_US)
+
+adf.IntRateCV <- ur.df(InterestRateCV, type="none", selectlags = c("AIC"))
+summary(adf.IntRateCV)
+#stationary
+
+adf.InflationCV <- ur.df(InflationCV, type="none", selectlags = c("AIC"))
+summary(adf.InflationCV)
+#non stationary
+
+adf.RealGDPCV <- ur.df(RealGDPCV, type="none", selectlags = c("AIC"))
+summary(adf.RealGDPCV)
+#stationary
+
+adf.MoneyCV <- ur.df(MoneyCV, type="none", selectlags = c("AIC"))
+summary(adf.MoneyCV)
+#stationary
+
+adf.ExchangeCV <- ur.df(ExchangeRateCV, type="none", selectlags = c("AIC"))
+summary(adf.ExchangeCV)
+#non stationary
+
+adf.TrendCV <- ur.df(MoneyCV, type="none", selectlags = c("AIC"))
+summary(adf.MoneyCV)
 ```
 
 
-For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 2 or exceeding it, therefore, we conclude from our estimates that there is one cointegrating relationship.
 
-We obtain the cointegrating vectors from the Johansen test using:
-You can extract the cointegrating vectors by addressing the slot V by @V like sjd.vecm@V. This will be a matrix where each column is a cointegrating vector. You can multiply the original multivariate series (like sjd) to the V matrix to get the error correction terms.
-```{r}
-cointegrating_vectors <- jotestEigen_US@V # to get a matrix where each column
-```
+Then test for white noise residuals.
 
-Check if the cointegrating relationships are trending and not random walks, show graphically the cointegrating vectors
-
-```{r}
-autoplot(cointegrating_vectors, label=NULL)
-```
 
 
 ```{r}
@@ -443,6 +480,7 @@ adf.Inflation <- ur.df(TransformedInflation_US$TransformedInflation, type = "non
 summary(adf.Inflation)
 ```
 
+
 Real GDP
 
 ```{r}
@@ -472,80 +510,13 @@ summary(adf.WorldOilPrice)
 
 # Set up the VAR model
 
-## ACF & PACF
-```{r}
-acf(interestrate)
-pacf(interestrate)
-```
-Interest rate autocorrelation function shows that 5 lags are significant. Partial autocorrelation function shows less than one lag is significant.
-```{r}
-acf(inflation)
-pacf(inflation)
-```
-Cannot find significant lags for inflation for autocorrelation function or partial autocorrelation function.
-```{r}
-acf(realGDP)
-pacf(realGDP)
-```
-Real GDP is significant up to 5 lags showing lots of persistence and partial autocorrelation function shows significance for less than one lag, at one quarter only.
-```{r}
-acf(monetaryaggregate)
-pacf(monetaryaggregate)
-```
-Monetary aggregate's autocorrelation function indicates that lags up to 5 are significant and partial autocorrelation function shows only first quarter significant.
-```{r}
-acf(exchangerate)
-pacf(exchangerate)
-```
-Autocorrelation function for exchange rate indicates significance up to lag 4 and partial autocorrelation shows only first quarter significant. 
-```{r}
-acf(worldoilprice)
-pacf(worldoilprice)
-```
-
-
-## Build model
-```{r}
-ModelUS <- VAR(groupedVARendog, p=3, type="trend", season=NULL, exog=NULL)
-summary(ModelUS)
-#OVERFITTING?? NOT ENOUGH OBSERVATIONS?
-```
+Build VAR model
 ```{r}
 
-ModelUSJo <- ca.jo(groupedVARmatrix, type="eigen", K=2, ecdet="trend", spec="longrun")
-```
-
-
-If we let oil price be exog and have exchange rates included...
-```{r}
-groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate)
-colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate")
-```
-```{r}
-lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
-lagselect$selection
-
-ModelUS <- VAR(groupedVAR, p=2, type="trend", season=NULL, exog=worldoilprice)
+ModelUS <- VAR(groupedVAR, p=8, type="trend", season=NULL, exog=NULL)
 summary(ModelUS)
 ```
 
-
-If we excluded exchange rates...
-```{r}
-groupedVARexchange <- cbind(interestrate, inflation, realGDP, monetaryaggregate, worldoilprice)
-colnames(groupedVARexchange) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "WorldOilPrice")
-```
-```{r}
-lagselect <- VARselect(groupedVARexchange, lag.max=10, type="trend")
-lagselect$selection
-
-ModelUS <- VAR(groupedVARexchange, p=1, type="trend", season=NULL, exog=NULL)
-summary(ModelUS)
-```
-```{r}
-groupedVARexchangematrix <- as.matrix(groupedVARexchange)
-ModelUSJoExch <- ca.jo(groupedVARexchangematrix, type="eigen", K=2, ecdet="trend", spec="longrun")
-```
 
 
 
@@ -570,6 +541,18 @@ ModelUSJoExch <- ca.jo(groupedVARexchangematrix, type="eigen", K=2, ecdet="trend
 # Step 9: Test model specification using congruency, parsimony, lag inclusion...
 
 # Appendix {-}
+
+# Johansen Tests {-}
+```{r}
+jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotestEigen_US)
+```
+
+```{r}
+jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+summary(jotestTrace_US)
+```
+
 
 # Regression 1 {-}
 ![Alt Text](/Users/Harriet/Documents/Economic History/ESSAY/Texevier_History_Essay/HistoryEssay/data/Reg1.jpg)
