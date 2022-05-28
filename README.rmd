@@ -245,15 +245,14 @@ Real GDP = Domestic Currency, Seasonally Adjusted, quarterly, source IMF
 Monetary Aggregate = Dollars, Seasonally Adjusted, monthly source: IMF
 World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF. Need to do until 2017 because of monetary aggregate data constraints
 
-The methodology that I applied in order to replicate the study, was to first transform all of the quarterly series in logarithms except for the interest rate. As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. Findings were that...
-
-Whereas the paper found that interest rates, real GDP, exchange rates and the world oil price was integrated of order 1, whereas the monetary aggregate and inflation were found to be integrated of order 2. I then followed the paper by transforming these variables that were integrated of order 2 by using the real monetary aggregate (by taking the difference between the logarithm of monetary aggregate and the logarithm of inflation) and then using the change in logarithm inflation instead of logarithm of inflation.
+The methodology that I applied in order to replicate the study, was to first transform all of the quarterly series in logarithms except for the interest rate. As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. Findings were that Interest Rates are stationary, inflation before transformed is non-stationary, integrated order 1, and after transformed is stationary, real GDP is integrated in order 1, monetary aggregate is integrated order 1 before and after it is transformed, exchange rates and world oil price also integrated first order. Whereas the paper found that interest rates, real GDP, exchange rates and the world oil price was integrated of order 1, whereas the monetary aggregate and inflation were found to be integrated of order 2. Despite the differences in integration order, I then followed the paper by transforming these variables that were integrated of order 2 by using the real monetary aggregate (by taking the difference between the logarithm of monetary aggregate and the logarithm of inflation) and then using the change in logarithm inflation instead of logarithm of inflation.
 
 Intially found that matrix was computationally singular, therefore, needed to change matrix so it could be invertible. Let us check for multicollinearity and found all variables were correlated and statistically significant. Tried to test correlation if did not transform monetary aggregate and inflation as paper did, but still highly correlated.
 
 Perhaps, because in the paper they used predominantly seasonally-adjusted data but due to constraints on availability of data, for this replication I used a combination of seasonally-adjusted and not seasonally-adjusted.
 
 Could only overcome this error by detrending GDP and monetary aggregate. Therefore, our VAR system includes all the endogenous variables of interest rate, inflation, exchange rate, monetary aggregate and real GDP. In the following section, the exogenous variable of world oil prices and the time trend will be accounted for in the test for cointegration.
+
 
 Resultant time series variables were as follows:
 
@@ -332,8 +331,6 @@ Let us see if we can impose the restrictions contained in the B matrix onto the 
 U_Matrix <- cointegrating_matrix*B_Matrix
 U_Matrix
 ```
-
-
 
 Check if the cointegrating relationships are trending and not random walks, by first testing for stationarity.
 ```{r}
@@ -486,7 +483,7 @@ ggplot() +
     theme(axis.text.x = element_blank())
 ```
 
-# Step: Check if cointegrating relationships are trending and not random walks
+
 
 ```{r}
 adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type="none", selectlags = c("AIC"))
@@ -508,7 +505,7 @@ summary(adf.RealGDP)
 Monetary Aggregates
 
 ```{r}
-adf.MonetaryAggregate <- ur.df(DetrendedTransformedMonetary, type = "none", selectlags = c("AIC"))
+adf.MonetaryAggregate <- ur.df(MonetaryAggregateM1_US$MonetaryAggregateM1, type = "none", selectlags = c("AIC"))
 summary(adf.MonetaryAggregate)
 ```
 Exchange Rate
@@ -571,6 +568,3 @@ jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="long
 summary(jotestTrace_US)
 ```
 
-
-# Regression 1 {-}
-![Alt Text](/Users/Harriet/Documents/Economic History/ESSAY/Texevier_History_Essay/HistoryEssay/data/Reg1.jpg)
