@@ -261,7 +261,7 @@ Resultant time series variables were as follows:
 autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
 autoplot
 ```
-
+We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. The VAR model was found to have 9 lags (10 - 1) when we accounted for a time trend, as is done in the paper.
 
 ```{r}
 groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate, worldoilprice)
@@ -274,21 +274,9 @@ lagselect$selection
 #paper uses AIC criteria...lag - 1
 ```
 
-```{r}
-groupedVARendog <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate)
-colnames(groupedVARendog) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate")
-```
-```{r}
-lagselect <- VARselect(groupedVARendog, lag.max=10, type="trend", exogen= worldoilprice)
-lagselect$selection
-
-#paper uses AIC criteria...lag - 1
-```
 Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 9 so we use 8. As can be seen in Figure 1, there is clearly a lot of persistance after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008.
 
-Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test.
-
-For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 3 or exceeding it at the 5% confidence interval where our critical value is smaller than the test statistic. For the trace test, we find that we can reject the null hypothesis when the relationships equal or exceed 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal (25.71 critcal value marginally larger than 25.54 test statistic), we conclude from our estimates that there is likely one cointegrating relationship. This is the same result as is found for the US in Cologni & Manera.
+Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 3 or exceeding it at the 5% confidence interval where our critical value is smaller than the test statistic. For the trace test, we find that we can reject the null hypothesis when the relationships equal or exceed 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal (25.71 critcal value marginally larger than 25.54 test statistic), we conclude from our estimates that there is likely one cointegrating relationship. This is the same result as is found for the US in Cologni & Manera.
 
 We obtain the cointegrating vectors from the Johansen test and construct a matrix is which each column is a cointegrating vector. Then we multiply the VAR system by the cointegrating vector matrix to obtain the error correction terms.
  
@@ -296,8 +284,6 @@ We obtain the cointegrating vectors from the Johansen test and construct a matri
 cointegrating_vectors <- jotestEigen_US@V
 # to get a matrix where each column
 
-colnames(cointegrating_vectors)<-NULL
-rownames(cointegrating_vectors) <- NULL
 
 #get each cointegrating vector alone
 cointegrating_vectors
@@ -314,8 +300,40 @@ MoneyCV <- cointegrating_vectors[,4]
 
 ExchangeRateCV <- cointegrating_vectors[,5]
 
-TrendCV <- cointegrating_vectors[,6]
+OilPriceCV <- cointegrating_vectors[,6]
 ```
+
+
+```{r}
+#remove the trend line from the matrix so that it is 6x6
+cointegrating_matrix <- cointegrating_matrix[-7,-7]
+    
+colnames(cointegrating_matrix)<-NULL
+rownames(cointegrating_matrix) <- NULL
+```
+Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
+```{r}
+
+Brow1 <- c(1,1,0,1,0,0)
+Brow2 <- c(0,1,1,1,1,1)
+Brow3 <- c(0,0,1,1,1,1)
+Brow4 <- c(0,0,0,1,1,1)
+Brow5 <- c(0,0,0,0,1,1)
+Brow6 <- c(0,0,0,0,0,1)
+
+B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
+B_Matrix
+
+colnames(B_Matrix)<-NULL
+rownames(B_Matrix) <- NULL
+```
+Let us see if we can impose the restrictions contained in the B matrix onto the cointegrating vectors contained in the Et matrix.
+```{r}
+U_Matrix <- cointegrating_matrix*B_Matrix
+U_Matrix
+```
+
+
 
 Check if the cointegrating relationships are trending and not random walks, by first testing for stationarity.
 ```{r}
@@ -340,8 +358,8 @@ adf.ExchangeCV <- ur.df(ExchangeRateCV, type="none", selectlags = c("AIC"))
 summary(adf.ExchangeCV)
 #non stationary
 
-adf.TrendCV <- ur.df(MoneyCV, type="none", selectlags = c("AIC"))
-summary(adf.MoneyCV)
+adf.OilPriceCV <- ur.df(OilPriceCV, type="none", selectlags = c("AIC"))
+summary(adf.OilPriceCV)
 ```
 
 
