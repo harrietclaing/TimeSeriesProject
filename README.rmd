@@ -121,6 +121,12 @@ library(Hmisc)
 library(wordcountaddin)
 library(Texevier)
 library(rmarkdown)
+library(grid)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+library(tsDyn)
 wordcountaddin::word_count("README.Rmd")
 
 ExchangeRate <- read_csv("data/ExchangeRate.csv")
@@ -302,11 +308,7 @@ m<- ggplot() +
     labs(title = "World Oil Price") +
     theme(axis.text.x = element_blank())
 
-library(grid)
-library(gridExtra)
-library(grid)
-library(ggplot2)
-library(lattice)
+
 
 grid.arrange(g, h, i, k, l, m)
 ```
@@ -331,38 +333,22 @@ We obtain the cointegrating vectors from the Johansen test and construct a matri
  
 ```{r}
 cointegrating_vectors <- jotestEigen_US@V
-cointegrating_vectors
 
 # to get loading coeffs
 cointegrating_loadingcoeffs <- jotestEigen_US@W
 
-#MUST WE MU
-
-
-#get each cointegrating vector alone
-
-InterestRateCV <- cointegrating_vectors[,1]
-InterestRateCV
-
-InflationCV <- cointegrating_vectors[,2]
-InflationCV
-
-RealGDPCV <- cointegrating_vectors[,3]
-
-MoneyCV <- cointegrating_vectors[,4]
-
-ExchangeRateCV <- cointegrating_vectors[,5]
-
-OilPriceCV <- cointegrating_vectors[,6]
-```
-
-
-```{r}
-#remove the trend line from the matrix so that it is 6x6
-cointegrating_matrix <- cointegrating_matrix[-7,-7]
+#remove the trend line and titles from the matrices so that it is 6x6
+cointegrating_vectors_ <- cointegrating_vectors[-7,-7]
+cointegrating_loadingcoeffs_ <- cointegrating_loadingcoeffs[-7,-7]
     
-colnames(cointegrating_matrix)<-NULL
-rownames(cointegrating_matrix) <- NULL
+colnames(cointegrating_vectors_)<-NULL
+rownames(cointegrating_vectors_) <- NULL
+
+colnames(cointegrating_loadingcoeffs_)<-NULL
+rownames(cointegrating_loadingcoeffs_) <- NULL
+
+# to get cointegrating matrix pi
+cointegratingmatrix <- cointegrating_vectors_*cointegrating_loadingcoeffs_
 ```
 Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
 ```{r}
@@ -385,33 +371,23 @@ Let us see if we can impose the restrictions contained in the B matrix onto the 
 U_Matrix <- cointegrating_matrix*B_Matrix
 U_Matrix
 ```
+# Set up VECM
 
-Check if the cointegrating relationships are trending and not random walks, by first testing for stationarity.
 ```{r}
-
-adf.IntRateCV <- ur.df(InterestRateCV, type="none", selectlags = c("AIC"))
-summary(adf.IntRateCV)
-#stationary
-
-adf.InflationCV <- ur.df(InflationCV, type="none", selectlags = c("AIC"))
-summary(adf.InflationCV)
-#non stationary
-
-adf.RealGDPCV <- ur.df(RealGDPCV, type="none", selectlags = c("AIC"))
-summary(adf.RealGDPCV)
-#stationary
-
-adf.MoneyCV <- ur.df(MoneyCV, type="none", selectlags = c("AIC"))
-summary(adf.MoneyCV)
-#stationary
-
-adf.ExchangeCV <- ur.df(ExchangeRateCV, type="none", selectlags = c("AIC"))
-summary(adf.ExchangeCV)
-#non stationary
-
-adf.OilPriceCV <- ur.df(OilPriceCV, type="none", selectlags = c("AIC"))
-summary(adf.OilPriceCV)
+VECModel <- VECM(groupedVAR, lag=3, r=1, estim="ML")
+summary(VECModel)
 ```
+```{r}
+coeffs <- summary(VECModel)$coefMat
+
+ect_coeffs <- coeffs[ "ECR","Estimate"]
+#now we have a matrix of all of the ECT and variables
+```
+```{r}
+#need covariance of ecm terms in matrix 
+cov(ect_coeffs)
+```
+
 
 
 
@@ -485,9 +461,8 @@ summary(adf.WorldOilPrice) #non stat
 
 # Set up the VAR model
 
-Build VAR model
+# Build VAR model
 ```{r, echo=TRUE}
-
 ModelUS <- VAR(groupedVAR, p=3, type="trend", season=NULL, exog=NULL)
 summary(ModelUS)
 ```
