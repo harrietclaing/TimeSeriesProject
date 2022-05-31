@@ -209,7 +209,7 @@ DetrendedlogRealGDP <- detrend(logRealGDP_US$logRealGDP)
 DetrendedTransformedMonetary <- detrend(TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1)
 
 interestrate <- ts(InterestRates_US$InterestRate, start=c(1990,1), end=c(2016, 4), freq=4)
-inflation <- ts(TransformedInflation_US$TransformedInflation, start=c(1990,1), end=c(2016, 4), freq=4)
+inflation <- ts(Inflation_US$Inflation, start=c(1990,1), end=c(2016, 4), freq=4)
 realGDP <- ts(logRealGDP_US$logRealGDP, start=c(1990,1), end=c(2016, 4), freq=4)
 exchangerate <- ts(logExchangeRates_US$logExchangeRates, start=c(1990,1), end=c(2016, 4), freq=4)
 worldoilprice <- ts(logWorldOilPrice$logWorldOilPrice, start=c(1990,1), end=c(2016, 4), freq=4)
@@ -236,7 +236,7 @@ To replicate the study by Cologni & Manera to find the economic impact of a rise
 
 # Step 1: Find the data
 
-Tried to find all data from the IMF, but for Exchange Rates had to use OECD estimates and for Inflation had to use US Bureau of Labor Statistics. First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly and limit the time period to the one used in the paper which is from 1980Q1 to 2003Q3. World oil price: could only find from 1990, therefore had to limit to 1990 onwards.
+As per the paper, the data was sourced where possible from the IMF. However, for the interest rate and exchange rate we sourced the data from Board of Governors of the Federal Reserve System and for inflation from the US Bureau of Labor Statistics. First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly. The time period available to reproduce the results of the paper was constrained by the availability of world oil price data: could only find from 1990, therefore had to limit to 1990 onwards. Similarly, restricted time period due to the data availability of money. In the paper they used predominantly seasonally-adjusted data but due to constraints on availability of data, for this replication I used a combination of seasonally-adjusted and not seasonally-adjusted.
 
 Interest Rate= Federal Funds Effective Rate, percent, not seasonally adjusted, monthly Source:  Board of Governors of the Federal Reserve System
 Exchange Rate= Millions of Dollars, Not Seasonally Adjusted, quarterly, source: Board of Governors of the Federal Reserve System (2021)
@@ -245,14 +245,7 @@ Real GDP = Domestic Currency, Seasonally Adjusted, quarterly, source IMF
 Monetary Aggregate = Dollars, Seasonally Adjusted, monthly source: IMF
 World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF. Need to do until 2017 because of monetary aggregate data constraints
 
-The methodology that I applied in order to replicate the study, was to first transform all of the quarterly series in logarithms except for the interest rate. As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. Findings were that Interest Rates are stationary, inflation before transformed is non-stationary, integrated order 1, and after transformed is stationary, real GDP is integrated in order 1, monetary aggregate is integrated order 1 before and after it is transformed, exchange rates and world oil price also integrated first order. Whereas the paper found that interest rates, real GDP, exchange rates and the world oil price was integrated of order 1, whereas the monetary aggregate and inflation were found to be integrated of order 2. Despite the differences in integration order, I then followed the paper by transforming these variables that were integrated of order 2 by using the real monetary aggregate (by taking the difference between the logarithm of monetary aggregate and the logarithm of inflation) and then using the change in logarithm inflation instead of logarithm of inflation.
-
-Intially found that matrix was computationally singular, therefore, needed to change matrix so it could be invertible. Let us check for multicollinearity and found all variables were correlated and statistically significant. Tried to test correlation if did not transform monetary aggregate and inflation as paper did, but still highly correlated.
-
-Perhaps, because in the paper they used predominantly seasonally-adjusted data but due to constraints on availability of data, for this replication I used a combination of seasonally-adjusted and not seasonally-adjusted.
-
-Could only overcome this error by detrending GDP and monetary aggregate. Therefore, our VAR system includes all the endogenous variables of interest rate, inflation, exchange rate, monetary aggregate and real GDP. In the following section, the exogenous variable of world oil prices and the time trend will be accounted for in the test for cointegration.
-
+The methodology that I applied in order to replicate the study, was to first transform all of the quarterly series in logarithms except for the interest rate. As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. Findings at the 1% confidence interval were that are all variables were non-stationary and were integrated of order 1, except for the monetary aggregate which was found to be integrated of order 2. The lags were selected according to the AIC criteria, as done in the paper. The results in this replication differed only from the paper regarding the integration order of inflation, which was found to be integrated of order 1 by Cologni & Manera. This difference from the paper dictated that only the monetary aggregate be transformed by subtracting inflation to become the real monetary aggregate (by taking the difference between the logarithm of monetary aggregate and the logarithm of inflation), and the transformation for inflation was not followed. This is because for finding cointegrating relationships, the time series variables must be integrated of order 1.
 
 Resultant time series variables were as follows:
 
@@ -260,32 +253,93 @@ Resultant time series variables were as follows:
 autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
 autoplot
 ```
-We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. The VAR model was found to have 9 lags (10 - 1) when we accounted for a time trend, as is done in the paper.
+```{r}
+g<- ggplot() +
+    geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate)) +
+    xlab("") +
+    ylab("") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Interest rates") +
+    theme(axis.text.x = element_blank())
+
+h<- ggplot() +
+    geom_point(aes(logInflation_US$DATE, logInflation_US$logInflation))+
+    xlab("") +
+    ylab("") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Inflation") +
+    theme(axis.text.x = element_blank())
+
+i<- ggplot() +
+    geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))+
+    xlab("") +
+    ylab("") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Real GDP") +
+    theme(axis.text.x = element_blank())
+
+k<- ggplot() +
+    geom_point(aes(TransformedMonetaryAggregateM1_US$DATE, TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1))+
+    xlab("") +
+    ylab("") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Monetary Aggregate") +
+    theme(axis.text.x = element_blank())
+
+l<- ggplot() +
+    geom_point(aes(logRealGDP_US$DATE, logExchangeRates_US$logExchangeRates)) +
+    xlab("") +
+    ylab("") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "Real GDP") +
+    theme(axis.text.x = element_blank())
+
+m<- ggplot() +
+    geom_point(aes(logWorldOilPrice$DATE, logWorldOilPrice$logWorldOilPrice))+
+    xlab("") +
+    ylab("") +
+    theme(plot.title = element_text(hjust = 0.5)) +
+    labs(title = "World Oil Price") +
+    theme(axis.text.x = element_blank())
+
+library(grid)
+library(gridExtra)
+library(grid)
+library(ggplot2)
+library(lattice)
+
+grid.arrange(g, h, i, k, l, m)
+```
+We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. We set the lag max to 4. The VAR model was found to have 3 lags (4 - 1) when we used the AIC lag selection criteria and accounted for a time trend, as is done in the paper.
 
 ```{r}
-groupedVAR <- cbind(interestrate, inflation, realGDP, monetaryaggregate, exchangerate, worldoilprice)
-colnames(groupedVAR) <- cbind("InterestRate", "Inflation", "RealGDP", "MonetaryAggregate", "ExchangeRate", "WorldOilPrice")
+groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
+colnames(groupedVAR) <- cbind("MonetaryAggregate", "InterestRate", "RealGDP", "Inflation", "ExchangeRate", "WorldOilPrice")
 ```
 ```{r}
-lagselect <- VARselect(groupedVAR, lag.max=10, type="trend")
+lagselect <- VARselect(groupedVAR, lag.max=4, type="trend")
 lagselect$selection
 
 #paper uses AIC criteria...lag - 1
 ```
 
-Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 9 so we use 8. As can be seen in Figure 1, there is clearly a lot of persistance after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008.
+Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 4, so we use 3. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008.
 
-Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 3 or exceeding it at the 5% confidence interval where our critical value is smaller than the test statistic. For the trace test, we find that we can reject the null hypothesis when the relationships equal or exceed 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal (25.71 critcal value marginally larger than 25.54 test statistic), we conclude from our estimates that there is likely one cointegrating relationship. This is the same result as is found for the US in Cologni & Manera.
+Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 3 or exceeding it at the 5% confidence interval where our critical value is smaller than the test statistic. For the trace test, we find that we can reject the null hypothesis when the relationships equal or exceed 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal (25.71 critical value marginally larger than 25.54 test statistic), we conclude from our estimates that there is likely one cointegrating relationship. This is the same result as is found for the US in Cologni & Manera.
 
 We obtain the cointegrating vectors from the Johansen test and construct a matrix is which each column is a cointegrating vector. Then we multiply the VAR system by the cointegrating vector matrix to obtain the error correction terms.
  
 ```{r}
 cointegrating_vectors <- jotestEigen_US@V
-# to get a matrix where each column
+cointegrating_vectors
+
+# to get loading coeffs
+cointegrating_loadingcoeffs <- jotestEigen_US@W
+
+#MUST WE MU
 
 
 #get each cointegrating vector alone
-cointegrating_vectors
 
 InterestRateCV <- cointegrating_vectors[,1]
 InterestRateCV
@@ -377,158 +431,64 @@ The null-hypothesis of an Augmented Dickey-Fuller test is that the series has a 
 
 In this section, we find that the interest rate is stationary, change in inflation is stationary, detrended real GDP is still not stationary, detrended monetary aggregate is still non-stationary and world oil price is non stationary.
 
-Interest Rate
-```{r}
-#let us visualise first
-ggplot() +
-    geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate)) +
-    xlab("Years") +
-    ylab("Interest Rate") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Interest rates") +
-    theme(axis.text.x = element_blank())
-```
-The estimated critical value for the Augmented Dickey Fuller test for the interest rate is small enough to reject the null hypothesis at 5% confidence interval = -2.2403<-1.95, therefore, may be a stationary series.
-
-```{r}
-ggplot() +
-    geom_point(aes(TransformedInflation_US$DATE, TransformedInflation_US$TransformedInflation))+
-    xlab("Years") +
-    ylab("Inflation (change in inflation)") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Inflation") +
-    theme(axis.text.x = element_blank())
-```
-
-The estimated critical value of -3.4624 for inflation is small enough to reject the null hypothesis at 1% confidence interval, -3.4624<-2.58. Therefore can reject the null hypothesis that there is a unit root and series may be stationary.
-
-```{r}
-ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))+
-    xlab("Years") +
-    ylab("Real GDP") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Real GDP") +
-    theme(axis.text.x = element_blank())
-```
-Think we should detrend, because seems to be a clear upward linear trend
-
-```{r}
-ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, DetrendedlogRealGDP))+
-    xlab("Years") +
-    ylab("Real GDP (detrended)") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Real GDP (detrended)") +
-    theme(axis.text.x = element_blank())
-```
-Detrended Real GDP series is still non-stationary. But cannot first difference it in case remove important information.
-
-```{r}
-#TransformedRealGDP_US <- mutate(logRealGDP_US, TransformedRealGDP = logRealGDP_US$logRealGDP - lag(logRealGDP_US$logRealGDP, default=first(logRealGDP_US$logRealGDP)))
-```
-```{r}
-#ggplot() +
-    #geom_point(aes(TransformedRealGDP_US$DATE, TransformedRealGDP_US$TransformedRealGDP))
-```
-
-
-```{r}
-ggplot() +
-    geom_point(aes(TransformedMonetaryAggregateM1_US$DATE, TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1))+
-    xlab("Years") +
-    ylab("Monetary Aggregate") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Monetary Aggregate") +
-    theme(axis.text.x = element_blank())
-```
-No clear trend for the Transformed Monetary Aggregate...try difference? cannot because then all values go to zero
-
-Think we should detrend, because seems to be a clear upward linear trend
-
-```{r}
-ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, DetrendedTransformedMonetary)) +
-    xlab("Years") +
-    ylab("Monetary Aggregate (detrended)") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Monetary Aggregate (detrended)") +
-    theme(axis.text.x = element_blank())
-```
-Detrended Monetary Aggregate is still non-stationary because cannot reject null hypothesis.
-
-```{r}
-ggplot() +
-    geom_point(aes(logExchangeRates_US$DATE, logExchangeRates_US$logExchangeRates))+
-    xlab("Years") +
-    ylab("Exchange Rate") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Exchange Rate") +
-    theme(axis.text.x = element_blank())
-```
-
-Let us try first difference the exchange rate.
-```{r}
-DifferencedExchangeRate = logExchangeRates_US$logExchangeRates - lag(logExchangeRates_US$logExchangeRates)
-```
-This does not work because it makes the series have no variation, removes too much information.
-
-```{r}
-ggplot() +
-    geom_point(aes(logWorldOilPrice$DATE, logWorldOilPrice$logWorldOilPrice))+
-    xlab("Years") +
-    ylab("World Oil Price") +
-    theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "World Oil Price") +
-    theme(axis.text.x = element_blank())
-```
-
-
+# Augmented Dickey Fuller tests
 
 ```{r}
 adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type="none", selectlags = c("AIC"))
-summary(adf.InterestRate)
+summary(adf.InterestRate) #non-stat
+
+adf.difInterestRate <- ur.df(diff(InterestRates_US$InterestRate), type="none", selectlags =c("AIC"))
+summary(adf.difInterestRate) #stat
 ```
 
 ```{r}
-adf.Inflation <- ur.df(TransformedInflation_US$TransformedInflation, type = "none", selectlags = c("AIC"))
-summary(adf.Inflation)
-```
+adf.Inflation <- ur.df(logInflation_US$logInflation, type = "none", selectlags = c("AIC"))
+summary(adf.Inflation) #non stat
 
+adf.difInflation <- ur.df(diff(logInflation_US$logInflation), type = "none", selectlags = c("AIC"))
+summary(adf.difInflation) #stat
+```
 
 Real GDP
 
 ```{r}
-adf.RealGDP <- ur.df(DetrendedlogRealGDP, type = "none", selectlags = c("AIC"))
-summary(adf.RealGDP)
+adf.RealGDP <- ur.df(logRealGDP_US$logRealGDP, type = "none", selectlags = c("AIC"))
+summary(adf.RealGDP) #non stat
+
+adf.difRealGDP <- ur.df(diff(logRealGDP_US$logRealGDP), type = "none", selectlags = c("AIC"))
+summary(adf.difRealGDP) #stat
 ```
 Monetary Aggregates
 
 ```{r}
-adf.MonetaryAggregate <- ur.df(MonetaryAggregateM1_US$MonetaryAggregateM1, type = "none", selectlags = c("AIC"))
-summary(adf.MonetaryAggregate)
+adf.MonetaryAggregate <- ur.df(logMonetaryAggregateM1_US$logMonetaryAggregate, type = "none", selectlags = c("AIC"))
+summary(adf.MonetaryAggregate) #non-stat
+
+adf.difMonetaryAggregate <- ur.df(diff(logMonetaryAggregateM1_US$logMonetaryAggregate), type = "none", selectlags = c("AIC"))
+summary(adf.difMonetaryAggregate) #non-stat
 ```
 Exchange Rate
 
 ```{r}
 adf.ExchangeRates <- ur.df(logExchangeRates_US$logExchangeRates, type = "none", selectlags = c("AIC"))
-summary(adf.ExchangeRates)
+summary(adf.ExchangeRates)#non stat
+
+adf.difExchangeRates <- ur.df(diff(logExchangeRates_US$logExchangeRates), type = "none", selectlags = c("AIC"))
+summary(adf.difExchangeRates) #stat
 ```
-0.0214 >-2.6 therefore cannot reject the unit root
 
 World Oil Price
 ```{r}
 adf.WorldOilPrice <- ur.df(logWorldOilPrice$logWorldOilPrice, type = "none", selectlags = c("AIC"))
-summary(adf.WorldOilPrice)
+summary(adf.WorldOilPrice) #non stat
 ```
-
 
 # Set up the VAR model
 
 Build VAR model
-```{r}
+```{r, echo=TRUE}
 
-ModelUS <- VAR(groupedVAR, p=8, type="trend", season=NULL, exog=NULL)
+ModelUS <- VAR(groupedVAR, p=3, type="trend", season=NULL, exog=NULL)
 summary(ModelUS)
 ```
 
