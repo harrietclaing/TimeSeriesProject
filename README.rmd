@@ -342,14 +342,31 @@ We obtain the cointegrating vectors from the Johansen test and construct a matri
 VECModelNew <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
 VARModelNew <- vec2var(VECModelNew, r=2)
 
-feir <- irf(VARModelNew, impulse = "InterestRate", response = "trend",
+M_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "MonetaryAggregate",
              n.ahead = 8, ortho = FALSE, runs = 1000)
+IR_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "InterestRate",
+             n.ahead = 8, ortho = FALSE, runs = 1000)
+GDP_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "RealGDP",
+             n.ahead = 8, ortho = FALSE, runs = 1000)
+I_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "Inflation",
+             n.ahead = 8, ortho = FALSE, runs = 1000)
+ER_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "ExchangeRate",
+             n.ahead = 8, ortho = FALSE, runs = 1000)
+M <- plot(M_IRF)
+I <- plot(IR_IRF)
+G <- plot(GDP_IRF)
+In <- plot (I_IRF)
+E <- plot(ER_IRF)
 
-plot(feir)
+library('ggplotify')
+library(grid)
+
+#grid.arrange(M, I, G, In, E)
 ```
 
 
 ```{r, echo = FALSE}
+jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun")
 cointegrating_vectors <- jotestEigen_US@V
 
 jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
@@ -369,6 +386,13 @@ rownames(cointegrating_loadingcoeffs_) <- NULL
 # to get cointegrating matrix pi we need to multiply the cointegrating vector matrix B transposed by the cointegrating loading coefficients matrix alpha
 cointegrating_matrix <- t(cointegrating_vectors_)*cointegrating_loadingcoeffs_
 ```
+
+Cointegrating vectors visually??
+```{r, echo=FALSE}
+plot(cointegrating_vectors)
+```
+
+
 Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
 ```{r, echo = FALSE}
 
@@ -398,12 +422,12 @@ VECModel <- VECM(cointanalysisVAR, lag=4, r=2, estim="ML")
 summary(VECModel)
 ```
 #Find VECM residuals
-```{r}
+```{r, echo=FALSE}
 ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
 ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
 
 #plot residuals
-residuals(VECModel)
+residuals(VARModelNew)
 ```
 
 
@@ -420,7 +444,7 @@ residuals(VECModel)
 We want to compare our estimates to the one in Table 3. 
 
 Maybe instead it is the VAR system ...missing constant and trend
-```{r}
+```{r, echo=FALSE}
 #set up table to compare cointegrating analysis of restricted system
 cointvectorr1 <- c(1, 0, -0.04625888, -0.01065431, 0.3009478, 0.03289175)
 cointvectorr2 <- c(0,1,0.43236715,0.01061212,-2.4453864,2.64998507)
@@ -431,7 +455,7 @@ cointanalysiscompare <- rbind(cointvectorpaper, cointvectorr1, cointvectorr2)
 colnames(cointanalysiscompare)<-cbind("y", "o", "r", "p", "e", "m", "c", "trend")
 #rownames(cointanalysiscompare) <- NULL
 
-kable(cointanalysiscompare, caption = "Cointegration analysis of restricted system")
+#kable(cointanalysiscompare, caption = "Cointegration analysis of restricted system")
 ```
 
 

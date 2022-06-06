@@ -286,41 +286,61 @@ Resultant time series variables were as follows:
 
 We then construct our VAR model by creating a matrix which includes the
 time series variables included in Figure 1. We set the lag max to 4. The
-VAR model was found to have 3 lags (4 - 1) when we used the AIC lag
-selection criteria and accounted for a time trend, as is done in the
-paper.
+VAR model was found to have 4 when we used the AIC lag selection
+criteria and accounted for a time trend, as is done in the paper. We
+order our VAR system in the same way as the short run restrictions
+matrix in the paper: monetary aggregate, interest rate, real GDP,
+inflation, exchange rate and world oil price.
 
-\begin{verbatim}
-## AIC(n)  HQ(n)  SC(n) FPE(n) 
-##      4      2      1      4
-\end{verbatim}
-
-Use AIC and find that lag should be 2 according to the paper, but we
-find AIC suggests 4, so we use 3. As can be seen in Figure 1, there is
-clearly a lot of persistence after the financial crisis. Exchange rates
-for the US had a stark level increase around this water-shed event and
-interest rates were set close to zero to try and stimulate the economy,
-where they have remained fairly constant since this monetary policy
-adjustment. Similarly, we can note real GDP has diminished since 2008.
+Lag should be 2 according to the paper, but we find AIC suggests 4. As
+can be seen in Figure 1, there is clearly a lot of persistence after the
+financial crisis. Exchange rates for the US had a stark level increase
+around this water-shed event and interest rates were set close to zero
+to try and stimulate the economy, where they have remained fairly
+constant since this monetary policy adjustment. Similarly, we can note
+real GDP has diminished since 2008. Therefore, it is likely the
+difference in the optimal lags between this replication and the Cologni
+\& Manera paper arises from the different time periods used, as Cologni
+\& Manera's time period ends before the financial crisis.
 
 Now we can see long-run trends in the time series variables, but wish to
 now see if there exists any cointegrating relationships. We test this
 using the Johansen test, namely the eigenvalue test and the trace test.
-For the eigenvalue test, we find that we can reject the null hypothesis
-of the number of cointegrating relationships equalling 3 or exceeding it
-at the 5\% confidence interval where our critical value is smaller than
-the test statistic. For the trace test, we find that we can reject the
-null hypothesis when the relationships equal or exceed 2. Therefore,
-because the rejection of the null hypothesis in the eigenvalue test is
-incredibly marginal (25.71 critical value marginally larger than 25.54
-test statistic), we conclude from our estimates that there is likely one
-cointegrating relationship. This is the same result as is found for the
-US in Cologni \& Manera.
+For the eigenvalue test, we find that there is likely one cointegrating
+relationship at the 5\% confidence interval where our critical value is
+smaller than the test statistic, however, only marginally (37.26
+estimated value \textless{} 37.52 critical value). For the trace test,
+we find that there is at least two cointegrating relationships.
+Therefore, because the rejection of the null hypothesis in the
+eigenvalue test is incredibly marginal, we conclude from our estimates
+that there is likely two cointegrating relationships. This is a
+divergence from the result as is found for the US in Cologni \& Manera.
+
+\hypertarget{cointegration-analysis-of-the-restricted-system}{%
+\section{Cointegration analysis of the restricted
+system}\label{cointegration-analysis-of-the-restricted-system}}
+
+\hypertarget{set-up-vecm}{%
+\section{Set up VECM}\label{set-up-vecm}}
 
 We obtain the cointegrating vectors from the Johansen test and construct
 a matrix is which each column is a cointegrating vector. Then we
 multiply the VAR system by the cointegrating vector matrix to obtain the
 error correction terms.
+
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-5-1} \end{center}
+
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-5-2} \end{center}
+
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-5-3} \end{center}
+
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-5-4} \end{center}
+
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-5-5} \end{center}
+
+Cointegrating vectors visually??
+
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-7-1} \end{center}
 
 Let us set up the imposed restrictions in a matrix, known as B matrix in
 the paper.
@@ -335,114 +355,347 @@ the paper.
 ## Brow6    0    0    0    0    0    1
 \end{verbatim}
 
-Let us see if we can impose the restrictions contained in the B matrix
-onto the cointegrating vectors contained in the Et matrix.
-
-\begin{verbatim}
-##             [,1]        [,2]         [,3]         [,4]         [,5]
-## [1,] -0.03485871  0.01603781  0.000000000  0.001526585  0.000000000
-## [2,]  0.00000000 -0.03217102 -0.011618819 -0.000240614 -0.022636950
-## [3,]  0.00000000  0.00000000  0.004480429 -0.032083484  0.016714331
-## [4,]  0.00000000  0.00000000  0.000000000 -0.139231280 -0.012532633
-## [5,]  0.00000000  0.00000000  0.000000000  0.000000000 -0.008558293
-## [6,]  0.00000000  0.00000000  0.000000000  0.000000000  0.000000000
-##               [,6]
-## [1,]  0.000000e+00
-## [2,] -5.406431e-03
-## [3,] -5.789421e-03
-## [4,] -8.313818e-03
-## [5,] -8.248844e-05
-## [6,]  9.414487e-03
-\end{verbatim}
-
-\hypertarget{set-up-vecm}{%
-\section{Set up VECM}\label{set-up-vecm}}
+\ldots Let us see if we can impose the restrictions contained in the B
+matrix onto the cointegrating vectors contained in the Et matrix.
 
 \begin{verbatim}
 ## #############
 ## ###Model VECM 
 ## #############
-## Full sample size: 108    End sample size: 104
-## Number of variables: 6   Number of estimated slope parameters 120
-## AIC -3198.134    BIC -2867.585   SSR 75.25772
+## Full sample size: 108    End sample size: 103
+## Number of variables: 6   Number of estimated slope parameters 162
+## AIC -3160.906    BIC -2713.002   SSR 62.48172
 ## Cointegrating vector (estimated by ML):
-##    MonetaryAggregate InterestRate  RealGDP  Inflation ExchangeRate
-## r1                 1    -0.134276 4.787817 -0.0522194     0.615354
-##    WorldOilPrice
-## r1     0.4247612
+##    realGDP worldoilprice interestrate   inflation exchangerate
+## r1       1             0  -0.04625888 -0.01065431    0.3009478
+## r2       0             1   0.43236715  0.01061212   -2.4453864
+##    monetaryaggregate
+## r1        0.03289175
+## r2        2.64998507
 ## 
 ## 
-##                            ECT                 Intercept          
-## Equation MonetaryAggregate 0.0126(0.0045)**    -1.1623(0.4105)**  
-## Equation InterestRate      -0.0200(0.1043)     1.9540(9.5628)     
-## Equation RealGDP           0.0005(0.0020)      -0.0411(0.1876)    
-## Equation Inflation         -0.0750(0.3299)     8.4465(30.2481)    
-## Equation ExchangeRate      -0.1963(0.0391)***  18.3351(3.5838)*** 
-## Equation WorldOilPrice     -0.0645(0.0542)     6.0297(4.9693)     
-##                            MonetaryAggregate -1 InterestRate -1    
-## Equation MonetaryAggregate 0.4105(0.1324)**     0.0031(0.0046)     
-## Equation InterestRate      -0.3107(3.0852)      0.5676(0.1068)***  
-## Equation RealGDP           -0.0478(0.0605)      -0.0022(0.0021)    
-## Equation Inflation         -0.1479(9.7587)      -0.8517(0.3377)*   
-## Equation ExchangeRate      -0.0068(1.1562)      0.0353(0.0400)     
-## Equation WorldOilPrice     -0.0068(1.6032)      -0.0309(0.0555)    
-##                            RealGDP -1           Inflation -1       
-## Equation MonetaryAggregate -0.3634(0.2590)      0.0094(0.0022)***  
-## Equation InterestRate      8.9686(6.0343)       -0.1328(0.0503)**  
-## Equation RealGDP           0.3067(0.1184)*      -0.0007(0.0010)    
-## Equation Inflation         25.2237(19.0871)     -0.3050(0.1591).   
-## Equation ExchangeRate      -0.2586(2.2614)      -0.0372(0.0189).   
-## Equation WorldOilPrice     5.6317(3.1357).      -0.0643(0.0261)*   
-##                            ExchangeRate -1     WorldOilPrice -1   
-## Equation MonetaryAggregate -0.0031(0.0073)     -0.0391(0.0131)**  
-## Equation InterestRate      -0.0114(0.1698)     0.4794(0.3046)     
-## Equation RealGDP           0.0026(0.0033)      -0.0013(0.0060)    
-## Equation Inflation         0.1635(0.5372)      4.0925(0.9635)***  
-## Equation ExchangeRate      -0.2607(0.0636)***  0.3036(0.1142)**   
-## Equation WorldOilPrice     0.0616(0.0882)      0.4672(0.1583)**   
-##                            MonetaryAggregate -2 InterestRate -2    
-## Equation MonetaryAggregate -0.0357(0.1367)      -0.0010(0.0054)    
-## Equation InterestRate      4.6836(3.1852)       0.0479(0.1247)     
-## Equation RealGDP           0.0919(0.0625)       0.0021(0.0024)     
-## Equation Inflation         4.6173(10.0751)      0.1513(0.3946)     
-## Equation ExchangeRate      0.7482(1.1937)       0.0708(0.0468)     
-## Equation WorldOilPrice     2.2347(1.6552)       -0.0113(0.0648)    
-##                            RealGDP -2           Inflation -2       
-## Equation MonetaryAggregate -0.5758(0.2612)*     0.0015(0.0022)     
-## Equation InterestRate      -0.5452(6.0847)      0.0186(0.0511)     
-## Equation RealGDP           0.2504(0.1194)*      -0.0009(0.0010)    
-## Equation Inflation         -8.8860(19.2466)     -0.1707(0.1615)    
-## Equation ExchangeRate      -5.6094(2.2803)*     -0.0100(0.0191)    
-## Equation WorldOilPrice     0.4852(3.1619)       -0.0251(0.0265)    
-##                            ExchangeRate -2     WorldOilPrice -2   
-## Equation MonetaryAggregate -0.0013(0.0068)     -0.0075(0.0133)    
-## Equation InterestRate      -0.1535(0.1591)     -0.3310(0.3089)    
-## Equation RealGDP           -0.0028(0.0031)     0.0035(0.0061)     
-## Equation Inflation         -0.7990(0.5032)     0.9032(0.9770)     
-## Equation ExchangeRate      -0.0974(0.0596)     -0.0140(0.1157)    
-## Equation WorldOilPrice     -0.0530(0.0827)     0.0298(0.1605)     
-##                            MonetaryAggregate -3 InterestRate -3    
-## Equation MonetaryAggregate 0.0399(0.1264)       -0.0120(0.0045)**  
-## Equation InterestRate      1.5625(2.9449)       0.0465(0.1056)     
-## Equation RealGDP           -0.0549(0.0578)      0.0009(0.0021)     
-## Equation Inflation         -0.9284(9.3150)      0.9919(0.3339)**   
-## Equation ExchangeRate      2.9212(1.1036)**     -0.0599(0.0396)    
-## Equation WorldOilPrice     -0.6155(1.5303)      0.0691(0.0549)     
-##                            RealGDP -3           Inflation -3       
-## Equation MonetaryAggregate 0.3512(0.2735)       0.0037(0.0021).    
-## Equation InterestRate      5.8409(6.3702)       -0.1417(0.0488)**  
-## Equation RealGDP           -0.0610(0.1250)      -0.0016(0.0010)    
-## Equation Inflation         -9.7967(20.1495)     -0.0537(0.1543)    
-## Equation ExchangeRate      -10.5904(2.3873)***  -0.1229(0.0183)*** 
-## Equation WorldOilPrice     -1.3140(3.3102)      -0.0394(0.0253)    
-##                            ExchangeRate -3     WorldOilPrice -3   
-## Equation MonetaryAggregate 0.0004(0.0068)      -0.0189(0.0127)    
-## Equation InterestRate      -0.0609(0.1588)     1.2460(0.2968)***  
-## Equation RealGDP           0.0013(0.0031)      0.0060(0.0058)     
-## Equation Inflation         -0.6361(0.5022)     0.3802(0.9388)     
-## Equation ExchangeRate      0.0260(0.0595)      0.3845(0.1112)***  
-## Equation WorldOilPrice     0.0156(0.0825)      0.2993(0.1542).
+##                            ECT1                ECT2               
+## Equation realGDP           -0.0025(0.0324)     -0.0002(0.0039)    
+## Equation worldoilprice     -1.4757(0.7870).    -0.1583(0.0952)    
+## Equation interestrate      -1.2205(1.5951)     -0.1277(0.1929)    
+## Equation inflation         -1.8461(4.7746)     -0.0425(0.5773)    
+## Equation exchangerate      -1.9858(0.5541)***  -0.1907(0.0670)**  
+## Equation monetaryaggregate -0.0757(0.0659)     -0.0145(0.0080).   
+##                            Intercept             realGDP -1         
+## Equation realGDP           0.0591(0.7036)        0.2904(0.1286)*    
+## Equation worldoilprice     31.5119(17.1131).     5.6119(3.1286).    
+## Equation interestrate      25.9344(34.6835)      9.6851(6.3409)     
+## Equation inflation         34.7518(103.8199)     31.9000(18.9805).  
+## Equation exchangerate      41.4388(12.0494)***   0.2701(2.2029)     
+## Equation monetaryaggregate 1.8656(1.4336)        -0.3439(0.2621)    
+##                            worldoilprice -1    interestrate -1    
+## Equation realGDP           -0.0003(0.0067)     -0.0025(0.0025)    
+## Equation worldoilprice     0.5600(0.1634)***   -0.1125(0.0603).   
+## Equation interestrate      0.5822(0.3312).     0.4874(0.1222)***  
+## Equation inflation         4.1363(0.9915)***   -1.4759(0.3657)*** 
+## Equation exchangerate      0.3896(0.1151)**    0.0487(0.0424)     
+## Equation monetaryaggregate -0.0325(0.0137)*    0.0060(0.0051)     
+##                            inflation -1        exchangerate -1    
+## Equation realGDP           -0.0008(0.0011)     0.0010(0.0056)     
+## Equation worldoilprice     -0.0753(0.0271)**   -0.0910(0.1369)    
+## Equation interestrate      -0.1340(0.0549)*    -0.3068(0.2775)    
+## Equation inflation         -0.3192(0.1645).    -0.9038(0.8306)    
+## Equation exchangerate      -0.0546(0.0191)**   -0.2085(0.0964)*   
+## Equation monetaryaggregate 0.0096(0.0023)***   -0.0018(0.0115)    
+##                            monetaryaggregate -1 realGDP -2           
+## Equation realGDP           -0.0472(0.0671)      0.2365(0.1302).      
+## Equation worldoilprice     -0.5160(1.6314)      -1.3203(3.1664)      
+## Equation interestrate      -1.1857(3.3063)      -3.2564(6.4174)      
+## Equation inflation         4.3288(9.8970)       -21.9170(19.2097)    
+## Equation exchangerate      0.0969(1.1487)       -4.4010(2.2295).     
+## Equation monetaryaggregate 0.2873(0.1367)*      -0.4698(0.2653).     
+##                            worldoilprice -2    interestrate -2    
+## Equation realGDP           0.0055(0.0073)      0.0024(0.0028)     
+## Equation worldoilprice     0.3409(0.1769).     0.0387(0.0686)     
+## Equation interestrate      -0.1481(0.3584)     0.1182(0.1391)     
+## Equation inflation         2.4492(1.0729)*     0.5065(0.4165)     
+## Equation exchangerate      0.0874(0.1245)      0.0380(0.0483)     
+## Equation monetaryaggregate -0.0107(0.0148)     -0.0009(0.0058)    
+##                            inflation -2        exchangerate -2    
+## Equation realGDP           -0.0010(0.0012)     -0.0031(0.0043)    
+## Equation worldoilprice     -0.0584(0.0295).    -0.1298(0.1038)    
+## Equation interestrate      0.0057(0.0599)      -0.2618(0.2103)    
+## Equation inflation         -0.4684(0.1792)*    -1.0585(0.6296).   
+## Equation exchangerate      -0.0204(0.0208)     -0.1237(0.0731).   
+## Equation monetaryaggregate 0.0044(0.0025).     -0.0063(0.0087)    
+##                            monetaryaggregate -2 realGDP -3          
+## Equation realGDP           0.1033(0.0684)       -0.0782(0.1365)     
+## Equation worldoilprice     1.3784(1.6634)       -0.8674(3.3196)     
+## Equation interestrate      3.6173(3.3712)       3.5268(6.7279)      
+## Equation inflation         -1.0506(10.0911)     -2.7939(20.1389)    
+## Equation exchangerate      0.4999(1.1712)       -8.8788(2.3373)***  
+## Equation monetaryaggregate -0.0189(0.1393)      0.2459(0.2781)      
+##                            worldoilprice -3    interestrate -3    
+## Equation realGDP           0.0043(0.0067)      0.0008(0.0027)     
+## Equation worldoilprice     0.1781(0.1625)      0.0654(0.0648)     
+## Equation interestrate      1.0059(0.3293)**    0.1238(0.1313)     
+## Equation inflation         -0.1215(0.9857)     0.7420(0.3931).    
+## Equation exchangerate      0.4804(0.1144)***   -0.0915(0.0456)*   
+## Equation monetaryaggregate -0.0182(0.0136)     -0.0063(0.0054)    
+##                            inflation -3        exchangerate -3    
+## Equation realGDP           -0.0012(0.0011)     0.0016(0.0039)     
+## Equation worldoilprice     -0.0207(0.0262)     -0.1024(0.0944)    
+## Equation interestrate      -0.1189(0.0532)*    -0.1337(0.1913)    
+## Equation inflation         -0.0378(0.1592)     -1.0044(0.5726).   
+## Equation exchangerate      -0.1235(0.0185)***  -0.0421(0.0665)    
+## Equation monetaryaggregate 0.0045(0.0022)*     -0.0063(0.0079)    
+##                            monetaryaggregate -3 realGDP -4          
+## Equation realGDP           -0.0369(0.0684)      0.0450(0.1491)      
+## Equation worldoilprice     0.3052(1.6625)       -0.8771(3.6271)     
+## Equation interestrate      1.1908(3.3695)       0.6653(7.3512)      
+## Equation inflation         4.4401(10.0860)      -7.8255(22.0046)    
+## Equation exchangerate      2.7280(1.1706)*      -2.1677(2.5539)     
+## Equation monetaryaggregate 0.0059(0.1393)       0.0664(0.3038)      
+##                            worldoilprice -4    interestrate -4    
+## Equation realGDP           -0.0005(0.0074)     0.0002(0.0024)     
+## Equation worldoilprice     0.4349(0.1809)*     0.0596(0.0592)     
+## Equation interestrate      0.3195(0.3667)      -0.0987(0.1201)    
+## Equation inflation         3.5506(1.0978)**    0.3034(0.3595)     
+## Equation exchangerate      -0.0770(0.1274)     0.1590(0.0417)***  
+## Equation monetaryaggregate -0.0146(0.0152)     -0.0041(0.0050)    
+##                            inflation -4        exchangerate -4    
+## Equation realGDP           -0.0007(0.0014)     0.0002(0.0036)     
+## Equation worldoilprice     -0.0552(0.0332)     -0.1217(0.0882)    
+## Equation interestrate      -0.0427(0.0673)     -0.1816(0.1787)    
+## Equation inflation         -0.5431(0.2016)**   -0.6886(0.5350)    
+## Equation exchangerate      0.0237(0.0234)      0.0116(0.0621)     
+## Equation monetaryaggregate 0.0053(0.0028).     0.0022(0.0074)     
+##                            monetaryaggregate -4
+## Equation realGDP           -0.0150(0.0643)     
+## Equation worldoilprice     1.6411(1.5628)      
+## Equation interestrate      3.8388(3.1673)      
+## Equation inflation         14.5380(9.4809)     
+## Equation exchangerate      1.0851(1.1004)      
+## Equation monetaryaggregate 0.0383(0.1309)
 \end{verbatim}
+
+\#Find VECM residuals
+
+\begin{verbatim}
+##        resids of MonetaryAggregate resids of InterestRate resids of RealGDP
+##   [1,]               -5.091444e-03            0.172787403     -4.231571e-03
+##   [2,]                7.064365e-03           -0.039791708     -9.743467e-03
+##   [3,]                8.654450e-03           -0.555367766     -2.647937e-03
+##   [4,]               -5.085283e-03            0.591194113      6.427998e-03
+##   [5,]                3.249230e-03            0.173152235     -7.403839e-04
+##   [6,]                9.938850e-03           -0.622320494     -1.418350e-03
+##   [7,]                1.989088e-02           -0.178677643      8.289268e-03
+##   [8,]               -4.250687e-03            0.183579088      4.353710e-03
+##   [9,]                7.044899e-03           -0.427426469      2.823502e-03
+##  [10,]                1.481119e-02            0.045451938      3.552807e-03
+##  [11,]               -1.541054e-02            0.046976249     -3.779627e-03
+##  [12,]                2.233298e-03           -0.014658898      5.443068e-04
+##  [13,]                5.978746e-03            0.051838303     -1.187842e-03
+##  [14,]               -3.448061e-03           -0.155569425      7.476947e-03
+##  [15,]               -1.186639e-02            0.145290846      5.381516e-04
+##  [16,]               -1.054459e-02            0.462024054      4.385239e-03
+##  [17,]                9.917367e-04           -0.074189179     -4.344639e-03
+##  [18,]               -1.010670e-02            0.365758368      4.259191e-03
+##  [19,]               -3.526092e-03            0.150789055     -6.123924e-03
+##  [20,]               -4.914722e-03           -0.103590139     -4.002594e-03
+##  [21,]               -2.155836e-03           -0.236754754      3.010787e-03
+##  [22,]               -1.332246e-02            0.080463489     -6.540276e-04
+##  [23,]               -9.486122e-03           -0.278680002      3.264699e-04
+##  [24,]               -4.138072e-03            0.174251663      9.657794e-03
+##  [25,]               -1.330649e-02            0.079408296     -1.265346e-03
+##  [26,]               -1.545989e-02           -0.075081510      2.250366e-03
+##  [27,]                2.017288e-03            0.043804872     -2.201027e-03
+##  [28,]               -1.205103e-02            0.300004774      9.211835e-03
+##  [29,]                1.123164e-02           -0.280691754      2.771734e-04
+##  [30,]               -3.935357e-04           -0.085564183      8.583336e-06
+##  [31,]                9.120171e-03            0.041856500      2.556494e-03
+##  [32,]               -6.588701e-03           -0.072744542      2.608813e-04
+##  [33,]               -3.103059e-03           -0.002834155      4.317926e-03
+##  [34,]                1.139891e-02           -0.757756760      6.517496e-03
+##  [35,]               -6.170264e-03            0.178832711     -2.822600e-04
+##  [36,]               -6.263870e-03           -0.002228512      6.181800e-04
+##  [37,]               -3.686535e-03            0.321585183      6.938148e-03
+##  [38,]                2.110767e-02           -0.036813829      7.716545e-03
+##  [39,]                1.554125e-03            0.208009266     -4.863239e-03
+##  [40,]               -5.112154e-03            0.563596246      1.328046e-02
+##  [41,]                2.817863e-03           -0.124709927     -9.917687e-03
+##  [42,]               -2.052753e-03            0.051181414      2.334624e-03
+##  [43,]                1.251802e-02           -0.668599057     -9.195961e-03
+##  [44,]               -2.787740e-03           -0.391036274      4.811351e-03
+##  [45,]                2.804542e-02            0.065327661     -7.856243e-03
+##  [46,]               -1.623683e-02           -0.709738595      2.284546e-03
+##  [47,]               -2.737263e-03            0.415004621      2.836495e-03
+##  [48,]               -1.903293e-02            0.146273641     -6.679255e-04
+##  [49,]               -4.655042e-03           -0.034499443     -3.217784e-03
+##  [50,]                1.417220e-03           -0.303096481     -4.901235e-03
+##  [51,]               -6.508838e-03            0.038304328      4.129355e-04
+##  [52,]                8.958981e-03            0.159574133      4.055288e-03
+##  [53,]                1.602468e-03           -0.400966188      8.494937e-03
+##  [54,]               -9.984459e-03           -0.008956089      2.112079e-03
+##  [55,]                3.010338e-03           -0.106718961     -3.380190e-03
+##  [56,]               -8.019641e-03            0.028570232      1.752502e-03
+##  [57,]               -3.190891e-03            0.412394832      2.711070e-03
+##  [58,]                1.057790e-03            0.209379180      2.860513e-03
+##  [59,]               -1.311254e-02            0.253972325      3.174380e-03
+##  [60,]               -1.729739e-03            0.096260372     -3.237677e-03
+##  [61,]               -3.213771e-03            0.324626453      1.841251e-03
+##  [62,]               -1.135894e-02            0.403887072      8.701556e-04
+##  [63,]               -1.445328e-03            0.338329519      6.913751e-03
+##  [64,]                3.779257e-03            0.165153524     -5.995416e-03
+##  [65,]               -9.165221e-03            0.306358530     -2.792681e-03
+##  [66,]                1.213242e-02            0.071547343      3.792252e-03
+##  [67,]                8.943106e-03           -0.022731340     -4.357760e-03
+##  [68,]               -5.304280e-03            0.269311669      1.927404e-03
+##  [69,]               -4.316269e-03            0.067147529      1.381405e-03
+##  [70,]               -1.430646e-03           -0.305847452      8.509416e-04
+##  [71,]               -5.920573e-03           -0.699707004     -8.284270e-03
+##  [72,]               -2.073768e-02            0.077474277      5.254613e-03
+##  [73,]               -5.500136e-03            0.719292076     -9.129305e-03
+##  [74,]                4.974766e-02           -1.015305932     -2.351360e-02
+##  [75,]               -6.774010e-04            0.385836969     -7.921933e-03
+##  [76,]               -1.480861e-03            0.136627885     -2.439672e-03
+##  [77,]               -5.165408e-03            0.017004042      1.265367e-03
+##  [78,]               -5.707666e-03            0.163468111     -7.143515e-04
+##  [79,]               -1.383170e-02           -0.082959318     -3.577664e-03
+##  [80,]               -6.523767e-03           -0.107819400      2.369378e-03
+##  [81,]                1.561191e-02           -0.277492232     -1.258149e-03
+##  [82,]                9.732216e-03           -0.107415300     -2.193417e-03
+##  [83,]               -2.950530e-03           -0.015949729     -7.022894e-03
+##  [84,]               -1.311837e-02            0.124164800      5.277944e-03
+##  [85,]                4.143723e-02            0.101005287     -5.780138e-03
+##  [86,]               -1.973133e-02            0.060384481      1.037075e-02
+##  [87,]                5.181282e-05           -0.089925207      6.382942e-04
+##  [88,]               -6.337139e-04           -0.033387278     -1.765005e-03
+##  [89,]                1.490445e-02           -0.115252210     -4.418875e-03
+##  [90,]                3.083455e-03            0.038681510     -2.684755e-03
+##  [91,]               -1.348858e-02            0.042293479      5.132454e-03
+##  [92,]                1.009839e-02           -0.099907434     -5.672811e-03
+##  [93,]               -5.841433e-04           -0.093445766      2.949255e-03
+##  [94,]                1.145218e-02            0.003578460      4.935447e-04
+##  [95,]                8.426436e-03           -0.053097997     -9.515712e-03
+##  [96,]               -2.418237e-03            0.183096561      1.082905e-02
+##  [97,]               -2.292921e-03           -0.095462719      3.806476e-03
+##  [98,]                1.410083e-02           -0.106408773     -3.934616e-03
+##  [99,]                2.054487e-02           -0.117001390      1.228197e-03
+## [100,]               -4.511702e-03           -0.244246087     -2.318954e-03
+## [101,]                2.569353e-03            0.052743324     -2.550713e-03
+## [102,]               -1.100683e-02            0.047603799     -4.734419e-03
+## [103,]                8.163848e-03            0.137236866     -1.370344e-04
+## [104,]                1.204233e-02           -0.221046420     -4.774596e-03
+## [105,]                4.410023e-03            0.107635268      3.175932e-03
+## [106,]               -8.899854e-03            0.052086516     -4.597177e-04
+##        resids of Inflation resids of ExchangeRate resids of WorldOilPrice
+##   [1,]          1.23131136           0.1350983513             0.552579500
+##   [2,]         -0.58352691          -0.0599552792             0.093148881
+##   [3,]         -0.76996681          -0.0891487964            -0.420759559
+##   [4,]          0.62671604           0.0830408824             0.055416231
+##   [5,]         -0.30921729          -0.0761871373             0.012247055
+##   [6,]         -0.40242521          -0.1146540775            -0.030878664
+##   [7,]         -0.47726229          -0.1262028617            -0.145649529
+##   [8,]         -0.14608305           0.0033759251             0.072238457
+##   [9,]         -0.39697138          -0.0149670273            -0.065566609
+##  [10,]          0.18108962          -0.3017588200            -0.057402498
+##  [11,]          0.24064105          -0.0052624367            -0.029948404
+##  [12,]          0.56366850           0.0262806864             0.053511266
+##  [13,]         -0.18447638          -0.0042823118            -0.097206459
+##  [14,]          0.59602099          -0.0243903579            -0.067103840
+##  [15,]          0.05350946           0.0682234406            -0.070356923
+##  [16,]          0.34987694           0.1032673317             0.154202332
+##  [17,]          0.13116484           0.0188968516            -0.036747985
+##  [18,]          0.10686391           0.0685696628             0.005799131
+##  [19,]          0.15824797           0.2015495728            -0.008972267
+##  [20,]          0.34851077           0.1047080168             0.078347286
+##  [21,]         -0.30763622          -0.0162841844            -0.108176362
+##  [22,]         -0.04192660           0.0703057764             0.052106847
+##  [23,]          0.16169336          -0.0002288728             0.053918278
+##  [24,]          0.06438817          -0.0167353351             0.013953151
+##  [25,]         -0.53411605          -0.0832106059            -0.020770269
+##  [26,]          0.20754133          -0.0099847834             0.074994540
+##  [27,]         -0.39856562          -0.0786842941            -0.150184520
+##  [28,]         -0.45354965          -0.0087577397            -0.157130037
+##  [29,]         -0.20706522          -0.0351562056            -0.048784479
+##  [30,]         -0.60519713          -0.0409928728            -0.070116997
+##  [31,]         -0.93041190          -0.0124928060            -0.330605401
+##  [32,]         -0.04467085           0.0349846237            -0.049227494
+##  [33,]         -0.20378074          -0.0058568755            -0.104981066
+##  [34,]         -0.25981068           0.0422650794            -0.154258011
+##  [35,]         -0.47234216           0.0247485390            -0.029701332
+##  [36,]          0.32643672           0.0586059918             0.307172211
+##  [37,]         -0.60248476           0.0160604984             0.186586559
+##  [38,]         -0.79964606          -0.0248801377             0.037116869
+##  [39,]         -0.43839663           0.0431364231            -0.011655024
+##  [40,]         -0.02951042           0.1068179429            -0.005753344
+##  [41,]         -0.01598849           0.1058065259             0.060480260
+##  [42,]         -0.22109045           0.1446189708            -0.018978047
+##  [43,]          0.35483782           0.1287180873            -0.136024766
+##  [44,]          0.60056246           0.2019683809             0.180922836
+##  [45,]         -0.94531836           0.1845798007            -0.073808226
+##  [46,]         -1.04764132           0.1024317323            -0.205329821
+##  [47,]          0.33258332           0.1588060729             0.162449599
+##  [48,]          0.23021422           0.0280374018             0.118704215
+##  [49,]         -0.04325195          -0.0510261022             0.045899240
+##  [50,]          0.19817262          -0.0292543473            -0.012182583
+##  [51,]          1.16268380          -0.1206291114             0.183259091
+##  [52,]         -1.41116896          -0.1128132055            -0.191017348
+##  [53,]          0.51839554          -0.0586842776             0.035772248
+##  [54,]         -0.73852982          -0.0208186391            -0.045375665
+##  [55,]          0.52720467           0.0147878352             0.035558428
+##  [56,]          0.60096089           0.0154901829             0.122818701
+##  [57,]          0.17612535           0.0269495783             0.155656375
+##  [58,]          0.65246053           0.0394905425             0.002428689
+##  [59,]         -0.05057332          -0.0946952340             0.084739256
+##  [60,]          0.06831777          -0.0098608112             0.033857761
+##  [61,]          1.71793806          -0.3005600843             0.159581123
+##  [62,]          0.47020358          -0.1164400448            -0.070671221
+##  [63,]          0.09178219          -0.0090899409             0.105329731
+##  [64,]         -0.14356957          -0.0398630538             0.002027060
+##  [65,]          0.31025286          -0.0426758656            -0.023862258
+##  [66,]         -2.01124060          -0.0145285937            -0.143755705
+##  [67,]          0.21955707          -0.0627301853            -0.155312941
+##  [68,]          1.01114657          -0.0842166614             0.172859457
+##  [69,]         -0.57887552          -0.1132416415             0.031188513
+##  [70,]          0.73232954          -0.0892503988             0.095917743
+##  [71,]          0.54310598          -0.0262360546             0.060168656
+##  [72,]          1.71822832           0.0212959878             0.316218872
+##  [73,]          1.93540736          -0.0837398282            -0.041091602
+##  [74,]         -4.83768016          -0.0225173739            -0.524802258
+##  [75,]         -1.16825727          -0.0723775080            -0.146857231
+##  [76,]          0.62868340          -0.4382402058             0.243995327
+##  [77,]         -0.10234945           1.0888968148            -0.014746936
+##  [78,]         -0.11182151          -0.0361954726            -0.032344319
+##  [79,]         -0.25276940          -0.0672116300             0.033625422
+##  [80,]         -0.56553872          -0.0677790885             0.025229450
+##  [81,]         -0.27239204          -0.0514720843            -0.100974870
+##  [82,]          0.93927465          -0.0822667869             0.104809622
+##  [83,]          1.29371487          -0.0971617420             0.193061579
+##  [84,]          1.65560814          -0.0708806017             0.172787783
+##  [85,]          0.63932477          -0.0542958660             0.010050619
+##  [86,]          0.25169852          -0.0142555605             0.043829381
+##  [87,]          0.46882575           0.0660942448             0.085804039
+##  [88,]         -0.43344434           0.0645282908            -0.073679100
+##  [89,]          0.59725816           0.1401714124             0.056559464
+##  [90,]          0.81763585           0.0846338739             0.055058920
+##  [91,]          0.37770293           0.0610864966             0.102500724
+##  [92,]         -1.09729658           0.0778915159            -0.087767904
+##  [93,]          0.58580262           0.0856238253             0.078176628
+##  [94,]         -0.18521581           0.0254375344            -0.015790665
+##  [95,]          0.46112971           0.0459612848            -0.016957672
+##  [96,]          0.72386948           0.0465417570             0.109932721
+##  [97,]         -0.57803376          -0.0144129842            -0.101728982
+##  [98,]         -1.43888686           0.0690329273            -0.305313861
+##  [99,]         -1.81808420           0.0703617244            -0.303834421
+## [100,]          0.99278160           0.0580363744             0.101916570
+## [101,]         -0.28281517          -0.0515570696            -0.232166988
+## [102,]         -0.23315600           0.0141209091            -0.068114648
+## [103,]         -0.63308303          -0.0443687060            -0.223158916
+## [104,]          1.35727318          -0.1229506263             0.274197037
+## [105,]         -0.76286518          -0.2491289692            -0.069671331
+## [106,]          0.26926011          -0.1937965226             0.046552598
+\end{verbatim}
+
+We want to compare our estimates to the one in Table 3.
+
+Maybe instead it is the VAR system \ldots missing constant and trend
 
 Then test for white noise residuals.
 
