@@ -339,7 +339,17 @@ Now we can see long-run trends in the time series variables, but wish to now see
 We obtain the cointegrating vectors from the Johansen test and construct a matrix is which each column is a cointegrating vector. Then we multiply the VAR system by the cointegrating vector matrix to obtain the error correction terms.
  
 ```{r, echo = FALSE}
-jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+VECModelNew <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+VARModelNew <- vec2var(VECModelNew, r=2)
+
+feir <- irf(VARModelNew, impulse = "InterestRate", response = "trend",
+             n.ahead = 8, ortho = FALSE, runs = 1000)
+
+plot(feir)
+```
+
+
+```{r, echo = FALSE}
 cointegrating_vectors <- jotestEigen_US@V
 
 jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
@@ -387,16 +397,28 @@ rownames(B_Matrix) <- NULL
 VECModel <- VECM(cointanalysisVAR, lag=4, r=2, estim="ML")
 summary(VECModel)
 ```
-```{r, echo = FALSE}
-coeffs <- summary(VECModel)$coefMat
+#Find VECM residuals
+```{r}
+ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
+ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
 
-ect_coeffs <- coeffs[grep("ECT", rownames(coeffs)),]
+#plot residuals
+residuals(VECModel)
+```
+
+
+```{r, echo = FALSE}
+#coeffs <- summary(VECModel)$coefMat
+
+#ect_coeffs <- coeffs[grep("ECT", rownames(coeffs)),]
 #now we have a matrix of all of the ECT and variables
 ```
 ```{r, echo = FALSE}
 #need covariance of ecm terms in matrix 
 #cov(ect_coeffs)
 ```
+We want to compare our estimates to the one in Table 3. 
+
 Maybe instead it is the VAR system ...missing constant and trend
 ```{r}
 #set up table to compare cointegrating analysis of restricted system
