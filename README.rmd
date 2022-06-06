@@ -255,11 +255,11 @@ The methodology that I applied in order to replicate the study, was to first tra
 
 Resultant time series variables were as follows:
 
-```{r}
+```{r, echo = FALSE}
 autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
 autoplot
 ```
-```{r}
+```{r, echo = FALSE}
 g<- ggplot() +
     geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate)) +
     xlab("") +
@@ -312,28 +312,37 @@ m<- ggplot() +
 
 grid.arrange(g, h, i, k, l, m)
 ```
-We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. We set the lag max to 4. The VAR model was found to have 3 lags (4 - 1) when we used the AIC lag selection criteria and accounted for a time trend, as is done in the paper.
+We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. We set the lag max to 4. The VAR model was found to have 4 when we used the AIC lag selection criteria and accounted for a time trend, as is done in the paper. We order our VAR system in the same way as the short run restrictions matrix in the paper: monetary aggregate, interest rate, real GDP, inflation, exchange rate and world oil price.
 
-```{r}
+```{r, echo = FALSE}
 groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
 colnames(groupedVAR) <- cbind("MonetaryAggregate", "InterestRate", "RealGDP", "Inflation", "ExchangeRate", "WorldOilPrice")
+
+cointanalysisVAR <- cbind(realGDP, worldoilprice, interestrate, inflation, exchangerate, monetaryaggregate)
+#according to table 3
 ```
-```{r}
+```{r, echo = FALSE}
 lagselect <- VARselect(groupedVAR, lag.max=4, type="trend")
-lagselect$selection
+#lagselect$selection
 
-#paper uses AIC criteria...lag - 1
+#paper uses AIC criteria
 ```
 
-Use AIC and find that lag should be 2 according to the paper, but we find AIC suggests 4, so we use 3. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008.
+Lag should be 2 according to the paper, but we find AIC suggests 4. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008. Therefore, it is likely the difference in the optimal lags between this replication and the Cologni & Manera paper arises from the different time periods used, as Cologni & Manera's time period ends before the financial crisis.
 
-Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that we can reject the null hypothesis of the number of cointegrating relationships equalling 3 or exceeding it at the 5% confidence interval where our critical value is smaller than the test statistic. For the trace test, we find that we can reject the null hypothesis when the relationships equal or exceed 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal (25.71 critical value marginally larger than 25.54 test statistic), we conclude from our estimates that there is likely one cointegrating relationship. This is the same result as is found for the US in Cologni & Manera.
+Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that there is likely one cointegrating relationship at the 5% confidence interval where our critical value is smaller than the test statistic, however, only marginally (37.26 estimated value < 37.52 critical value). For the trace test, we find that there is at least two cointegrating relationships. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal, we conclude from our estimates that there is likely two cointegrating relationships. This is a divergence from the result as is found for the US in Cologni & Manera.
+
+# Cointegration analysis of the restricted system
+
+# Set up VECM
 
 We obtain the cointegrating vectors from the Johansen test and construct a matrix is which each column is a cointegrating vector. Then we multiply the VAR system by the cointegrating vector matrix to obtain the error correction terms.
  
-```{r}
+```{r, echo = FALSE}
+jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
 cointegrating_vectors <- jotestEigen_US@V
 
+jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
 # to get loading coeffs
 cointegrating_loadingcoeffs <- jotestEigen_US@W
 
@@ -347,11 +356,11 @@ rownames(cointegrating_vectors_) <- NULL
 colnames(cointegrating_loadingcoeffs_)<-NULL
 rownames(cointegrating_loadingcoeffs_) <- NULL
 
-# to get cointegrating matrix pi
-cointegratingmatrix <- cointegrating_vectors_*cointegrating_loadingcoeffs_
+# to get cointegrating matrix pi we need to multiply the cointegrating vector matrix B transposed by the cointegrating loading coefficients matrix alpha
+cointegrating_matrix <- t(cointegrating_vectors_)*cointegrating_loadingcoeffs_
 ```
 Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
-```{r}
+```{r, echo = FALSE}
 
 Brow1 <- c(1,1,0,1,0,0)
 Brow2 <- c(0,1,1,1,1,1)
@@ -359,6 +368,7 @@ Brow3 <- c(0,0,1,1,1,1)
 Brow4 <- c(0,0,0,1,1,1)
 Brow5 <- c(0,0,0,0,1,1)
 Brow6 <- c(0,0,0,0,0,1)
+#m, r, y, p, e, o
 
 B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
 B_Matrix
@@ -366,26 +376,40 @@ B_Matrix
 colnames(B_Matrix)<-NULL
 rownames(B_Matrix) <- NULL
 ```
-Let us see if we can impose the restrictions contained in the B matrix onto the cointegrating vectors contained in the Et matrix.
-```{r}
-U_Matrix <- cointegrating_matrix*B_Matrix
-U_Matrix
+...Let us see if we can impose the restrictions contained in the B matrix onto the cointegrating vectors contained in the Et matrix.
+```{r, echo = FALSE}
+#U_Matrix <- cointegrating_matrix*B_Matrix
+#U_Matrix
 ```
-# Set up VECM
 
-```{r}
-VECModel <- VECM(groupedVAR, lag=3, r=1, estim="ML")
+
+```{r, echo = FALSE}
+VECModel <- VECM(cointanalysisVAR, lag=4, r=2, estim="ML")
 summary(VECModel)
 ```
-```{r}
+```{r, echo = FALSE}
 coeffs <- summary(VECModel)$coefMat
 
-ect_coeffs <- coeffs[ "ECR","Estimate"]
+ect_coeffs <- coeffs[grep("ECT", rownames(coeffs)),]
 #now we have a matrix of all of the ECT and variables
 ```
-```{r}
+```{r, echo = FALSE}
 #need covariance of ecm terms in matrix 
-cov(ect_coeffs)
+#cov(ect_coeffs)
+```
+Maybe instead it is the VAR system ...missing constant and trend
+```{r}
+#set up table to compare cointegrating analysis of restricted system
+cointvectorr1 <- c(1, 0, -0.04625888, -0.01065431, 0.3009478, 0.03289175)
+cointvectorr2 <- c(0,1,0.43236715,0.01061212,-2.4453864,2.64998507)
+cointvectorpaper <- c(1, 0.16, 0, -26.019, 0.218, 0, -8.511, -0.009)
+
+cointanalysiscompare <- rbind(cointvectorpaper, cointvectorr1, cointvectorr2)
+    
+colnames(cointanalysiscompare)<-cbind("y", "o", "r", "p", "e", "m", "c", "trend")
+#rownames(cointanalysiscompare) <- NULL
+
+kable(cointanalysiscompare, caption = "Cointegration analysis of restricted system")
 ```
 
 
@@ -395,7 +419,7 @@ Then test for white noise residuals.
 
 
 
-```{r}
+```{r, echo = FALSE}
 #groupedVARendogmatrix <- as.matrix(groupedVARendog)
 #error_correction_terms <- cointegrating_vectors*groupedVARendogmatrix #matrix has headings...
 ```
@@ -409,7 +433,7 @@ In this section, we find that the interest rate is stationary, change in inflati
 
 # Augmented Dickey Fuller tests
 
-```{r}
+```{r, echo = FALSE}
 adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type="none", selectlags = c("AIC"))
 summary(adf.InterestRate) #non-stat
 
@@ -417,7 +441,7 @@ adf.difInterestRate <- ur.df(diff(InterestRates_US$InterestRate), type="none", s
 summary(adf.difInterestRate) #stat
 ```
 
-```{r}
+```{r, echo = FALSE}
 adf.Inflation <- ur.df(logInflation_US$logInflation, type = "none", selectlags = c("AIC"))
 summary(adf.Inflation) #non stat
 
@@ -427,7 +451,7 @@ summary(adf.difInflation) #stat
 
 Real GDP
 
-```{r}
+```{r, echo = FALSE}
 adf.RealGDP <- ur.df(logRealGDP_US$logRealGDP, type = "none", selectlags = c("AIC"))
 summary(adf.RealGDP) #non stat
 
@@ -436,7 +460,7 @@ summary(adf.difRealGDP) #stat
 ```
 Monetary Aggregates
 
-```{r}
+```{r, echo = FALSE}
 adf.MonetaryAggregate <- ur.df(logMonetaryAggregateM1_US$logMonetaryAggregate, type = "none", selectlags = c("AIC"))
 summary(adf.MonetaryAggregate) #non-stat
 
@@ -445,7 +469,7 @@ summary(adf.difMonetaryAggregate) #non-stat
 ```
 Exchange Rate
 
-```{r}
+```{r, echo = FALSE}
 adf.ExchangeRates <- ur.df(logExchangeRates_US$logExchangeRates, type = "none", selectlags = c("AIC"))
 summary(adf.ExchangeRates)#non stat
 
@@ -454,7 +478,7 @@ summary(adf.difExchangeRates) #stat
 ```
 
 World Oil Price
-```{r}
+```{r, echo = FALSE}
 adf.WorldOilPrice <- ur.df(logWorldOilPrice$logWorldOilPrice, type = "none", selectlags = c("AIC"))
 summary(adf.WorldOilPrice) #non stat
 ```
@@ -462,7 +486,7 @@ summary(adf.WorldOilPrice) #non stat
 # Set up the VAR model
 
 # Build VAR model
-```{r, echo=TRUE}
+```{r, echo = FALSE}
 ModelUS <- VAR(groupedVAR, p=3, type="trend", season=NULL, exog=NULL)
 summary(ModelUS)
 ```
@@ -473,17 +497,11 @@ summary(ModelUS)
 
 # Step 5: ACF & PACF? or AIC criteria to choose lags
 
-```{r}
-
-```
 
 
 # Step 6: Is it stationary?
 
 # Step 7: Are the residuals white noise?
-```{r}
-#ljungbox test
-```
 
 
 # Step 8: Find VECM model by imposing SR contemporaneous effects
@@ -493,13 +511,12 @@ summary(ModelUS)
 # Appendix {-}
 
 # Johansen Tests {-}
-```{r}
-jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+```{r, echo = FALSE}
+
 summary(jotestEigen_US)
 ```
 
-```{r}
-jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+```{r, echo = FALSE}
 summary(jotestTrace_US)
 ```
 

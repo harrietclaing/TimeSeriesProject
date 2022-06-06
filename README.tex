@@ -224,22 +224,31 @@
 \section{\texorpdfstring{Introduction
 \label{Introduction}}{Introduction }}\label{introduction}}
 
-\hypertarget{purpose}{%
-\section{Purpose}\label{purpose}}
-
 To replicate the study by Cologni \& Manera to find the economic impact
 of a rise in oil prices.
+
+\hypertarget{background}{%
+\section{Background}\label{background}}
+
+\hypertarget{replication-methodology-results}{%
+\section{Replication methodology \&
+results}\label{replication-methodology-results}}
 
 \hypertarget{step-1-find-the-data}{%
 \section{Step 1: Find the data}\label{step-1-find-the-data}}
 
-Tried to find all data from the IMF, but for Exchange Rates had to use
-OECD estimates and for Inflation had to use US Bureau of Labor
-Statistics. First, we want to use US data and see if we can replicate
-the results in the study. We need to convert all the data into quarterly
-and limit the time period to the one used in the paper which is from
-1980Q1 to 2003Q3. World oil price: could only find from 1990, therefore
-had to limit to 1990 onwards.
+As per the paper, the data was sourced where possible from the IMF.
+However, for the interest rate and exchange rate we sourced the data
+from Board of Governors of the Federal Reserve System and for inflation
+from the US Bureau of Labor Statistics. First, we want to use US data
+and see if we can replicate the results in the study. We need to convert
+all the data into quarterly. The time period available to reproduce the
+results of the paper was constrained by the availability of world oil
+price data: could only find from 1990, therefore had to limit to 1990
+onwards. Similarly, restricted time period due to the data availability
+of money. In the paper they used predominantly seasonally-adjusted data
+but due to constraints on availability of data, for this replication I
+used a combination of seasonally-adjusted and not seasonally-adjusted.
 
 Interest Rate= Federal Funds Effective Rate, percent, not seasonally
 adjusted, monthly Source: Board of Governors of the Federal Reserve
@@ -249,194 +258,193 @@ quarterly, source: Board of Governors of the Federal Reserve System
 source U.S. Bureau of Labor Statistics Real GDP = Domestic Currency,
 Seasonally Adjusted, quarterly, source IMF Monetary Aggregate = Dollars,
 Seasonally Adjusted, monthly source: IMF World Oil Price = U.S. Dollars
-per Barrel, Not Seasonally Adjusted, monthly, IMF
+per Barrel, Not Seasonally Adjusted, monthly, IMF. Need to do until 2017
+because of monetary aggregate data constraints
 
-Need to do until 2017 because of monetary aggregate data constraints
+The methodology that I applied in order to replicate the study, was to
+first transform all of the quarterly series in logarithms except for the
+interest rate. As in the paper, we run Augmented Dickey Fuller tests on
+all the time series variables. Findings at the 1\% confidence interval
+were that are all variables were non-stationary and were integrated of
+order 1, except for the monetary aggregate which was found to be
+integrated of order 2. The lags were selected according to the AIC
+criteria, as done in the paper. The results in this replication differed
+only from the paper regarding the integration order of inflation, which
+was found to be integrated of order 1 by Cologni \& Manera. This
+difference from the paper dictated that only the monetary aggregate be
+transformed by subtracting inflation to become the real monetary
+aggregate (by taking the difference between the logarithm of monetary
+aggregate and the logarithm of inflation), and the transformation for
+inflation was not followed. This is because for finding cointegrating
+relationships, the time series variables must be integrated of order 1.
 
-As in the paper, we run Augmented Dickey Fuller tests on all the time
-series variables.
-
-\#Step 3: Find number of lags for the system
-
-First, set up the system of time series variables
+Resultant time series variables were as follows:
 
 \begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-1-1} \end{center}
 
-\begin{verbatim}
-## AIC(n)  HQ(n)  SC(n) FPE(n) 
-##      9      3      1      4
-\end{verbatim}
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-2-1} \end{center}
+
+We then construct our VAR model by creating a matrix which includes the
+time series variables included in Figure 1. We set the lag max to 4. The
+VAR model was found to have 3 lags (4 - 1) when we used the AIC lag
+selection criteria and accounted for a time trend, as is done in the
+paper.
 
 \begin{verbatim}
 ## AIC(n)  HQ(n)  SC(n) FPE(n) 
-##      9      3      1      4
+##      4      2      1      4
 \end{verbatim}
 
 Use AIC and find that lag should be 2 according to the paper, but we
-find AIC suggests 9 so we use 8\ldots overparameterised\ldots{}
+find AIC suggests 4, so we use 3. As can be seen in Figure 1, there is
+clearly a lot of persistence after the financial crisis. Exchange rates
+for the US had a stark level increase around this water-shed event and
+interest rates were set close to zero to try and stimulate the economy,
+where they have remained fairly constant since this monetary policy
+adjustment. Similarly, we can note real GDP has diminished since 2008.
 
-\hypertarget{step-4-johansen-test-in-the-long-run-approach}{%
-\section{Step 4: Johansen Test in the Long-Run
-Approach}\label{step-4-johansen-test-in-the-long-run-approach}}
-
-\begin{verbatim}
-## 
-## ###################### 
-## # Johansen-Procedure # 
-## ###################### 
-## 
-## Test type: maximal eigenvalue statistic (lambda max) , with linear trend in cointegration 
-## 
-## Eigenvalues (lambda):
-## [1]  3.979695e-01  3.042675e-01  2.153416e-01  9.738484e-02  3.505572e-02
-## [6] -1.178400e-16
-## 
-## Values of teststatistic and critical values of test:
-## 
-##           test 10pct  5pct  1pct
-## r <= 4 |  3.78 10.49 12.25 16.26
-## r <= 3 | 10.86 16.85 18.96 23.65
-## r <= 2 | 25.71 23.11 25.54 30.34
-## r <= 1 | 38.46 29.12 31.46 36.65
-## r = 0  | 53.79 34.75 37.52 42.36
-## 
-## Eigenvectors, normalised to first column:
-## (These are the cointegration relations)
-## 
-##                      InterestRate.l2 Inflation.l2  RealGDP.l2
-## InterestRate.l2            1.0000000   1.00000000   1.0000000
-## Inflation.l2           -2031.1972531  60.14611922  83.9230204
-## RealGDP.l2                44.3664771  91.40333932 -61.2150997
-## MonetaryAggregate.l2      -2.1675253  13.84339202  -9.0304301
-## ExchangeRate.l2            3.9947077   4.12487201  -4.1440037
-## trend.l2                  -0.1098671  -0.04984123   0.1212989
-##                      MonetaryAggregate.l2 ExchangeRate.l2    trend.l2
-## InterestRate.l2                1.00000000        1.000000   1.0000000
-## Inflation.l2                -104.04152982     -186.801057  67.9822906
-## RealGDP.l2                   -63.95611350     1116.457893 -51.9615009
-## MonetaryAggregate.l2         -22.52197056      133.718072  23.3950513
-## ExchangeRate.l2                4.11789111        5.345720  -4.5260646
-## trend.l2                       0.01077267        1.113211   0.1991169
-## 
-## Weights W:
-## (This is the loading matrix)
-## 
-##                     InterestRate.l2  Inflation.l2    RealGDP.l2
-## InterestRate.d         0.0078295417 -2.829900e-02 -3.016202e-02
-## Inflation.d            0.0005179529  3.106081e-05  4.416704e-05
-## RealGDP.d              0.0001337988  1.001147e-04 -6.358223e-04
-## MonetaryAggregate.d   -0.0007028248 -1.739070e-03 -1.169081e-03
-## ExchangeRate.d         0.0022638988 -3.169329e-02  3.217220e-02
-##                     MonetaryAggregate.l2 ExchangeRate.l2      trend.l2
-## InterestRate.d             -2.801371e-02    3.369312e-04  3.753628e-17
-## Inflation.d                -1.714724e-05    2.817733e-06 -1.609146e-18
-## RealGDP.d                  -2.760986e-04   -1.743527e-05 -3.191874e-18
-## MonetaryAggregate.d         9.917425e-04    2.214224e-06  3.888824e-20
-## ExchangeRate.d             -2.983729e-03   -2.378842e-04  2.750099e-16
-\end{verbatim}
-
-\begin{verbatim}
-## 
-## ###################### 
-## # Johansen-Procedure # 
-## ###################### 
-## 
-## Test type: trace statistic , with linear trend in cointegration 
-## 
-## Eigenvalues (lambda):
-## [1]  3.979695e-01  3.042675e-01  2.153416e-01  9.738484e-02  3.505572e-02
-## [6] -1.178400e-16
-## 
-## Values of teststatistic and critical values of test:
-## 
-##            test 10pct  5pct  1pct
-## r <= 4 |   3.78 10.49 12.25 16.26
-## r <= 3 |  14.64 22.76 25.32 30.45
-## r <= 2 |  40.35 39.06 42.44 48.45
-## r <= 1 |  78.80 59.14 62.99 70.05
-## r = 0  | 132.59 83.20 87.31 96.58
-## 
-## Eigenvectors, normalised to first column:
-## (These are the cointegration relations)
-## 
-##                      InterestRate.l2 Inflation.l2  RealGDP.l2
-## InterestRate.l2            1.0000000   1.00000000   1.0000000
-## Inflation.l2           -2031.1972531  60.14611922  83.9230204
-## RealGDP.l2                44.3664771  91.40333932 -61.2150997
-## MonetaryAggregate.l2      -2.1675253  13.84339202  -9.0304301
-## ExchangeRate.l2            3.9947077   4.12487201  -4.1440037
-## trend.l2                  -0.1098671  -0.04984123   0.1212989
-##                      MonetaryAggregate.l2 ExchangeRate.l2    trend.l2
-## InterestRate.l2                1.00000000        1.000000   1.0000000
-## Inflation.l2                -104.04152982     -186.801057  67.9822906
-## RealGDP.l2                   -63.95611350     1116.457893 -51.9615009
-## MonetaryAggregate.l2         -22.52197056      133.718072  23.3950513
-## ExchangeRate.l2                4.11789111        5.345720  -4.5260646
-## trend.l2                       0.01077267        1.113211   0.1991169
-## 
-## Weights W:
-## (This is the loading matrix)
-## 
-##                     InterestRate.l2  Inflation.l2    RealGDP.l2
-## InterestRate.d         0.0078295417 -2.829900e-02 -3.016202e-02
-## Inflation.d            0.0005179529  3.106081e-05  4.416704e-05
-## RealGDP.d              0.0001337988  1.001147e-04 -6.358223e-04
-## MonetaryAggregate.d   -0.0007028248 -1.739070e-03 -1.169081e-03
-## ExchangeRate.d         0.0022638988 -3.169329e-02  3.217220e-02
-##                     MonetaryAggregate.l2 ExchangeRate.l2      trend.l2
-## InterestRate.d             -2.801371e-02    3.369312e-04  3.753628e-17
-## Inflation.d                -1.714724e-05    2.817733e-06 -1.609146e-18
-## RealGDP.d                  -2.760986e-04   -1.743527e-05 -3.191874e-18
-## MonetaryAggregate.d         9.917425e-04    2.214224e-06  3.888824e-20
-## ExchangeRate.d             -2.983729e-03   -2.378842e-04  2.750099e-16
-\end{verbatim}
-
-Intially found that matrix was computationally singular, therefore,
-needed to change matrix so it could be invertible.
-
-Let us check for multicollinearity
-
-\begin{verbatim}
-##                   InterestRate Inflation RealGDP MonetaryAggregate ExchangeRate
-## InterestRate              1.00      0.33    0.26             -0.16        -0.74
-## Inflation                 0.33      1.00    0.14             -0.14        -0.20
-## RealGDP                   0.26      0.14    1.00             -0.81        -0.51
-## MonetaryAggregate        -0.16     -0.14   -0.81              1.00         0.42
-## ExchangeRate             -0.74     -0.20   -0.51              0.42         1.00
-## 
-## n= 108 
-## 
-## 
-## P
-##                   InterestRate Inflation RealGDP MonetaryAggregate ExchangeRate
-## InterestRate                   0.0005    0.0061  0.0882            0.0000      
-## Inflation         0.0005                 0.1358  0.1606            0.0394      
-## RealGDP           0.0061       0.1358            0.0000            0.0000      
-## MonetaryAggregate 0.0882       0.1606    0.0000                    0.0000      
-## ExchangeRate      0.0000       0.0394    0.0000  0.0000
-\end{verbatim}
-
-ALL STATISTICALLY SIGNIFICANTLY CORRELATED
-
-Tried to test correlation if did not transform monetary aggregate and
-inflation as paper did, but still highly correlated.
-
+Now we can see long-run trends in the time series variables, but wish to
+now see if there exists any cointegrating relationships. We test this
+using the Johansen test, namely the eigenvalue test and the trace test.
 For the eigenvalue test, we find that we can reject the null hypothesis
-of the number of cointegrating relationships equalling 2 or exceeding
-it, therefore, we conclude from our estimates that there is one
-cointegrating relationship.
+of the number of cointegrating relationships equalling 3 or exceeding it
+at the 5\% confidence interval where our critical value is smaller than
+the test statistic. For the trace test, we find that we can reject the
+null hypothesis when the relationships equal or exceed 2. Therefore,
+because the rejection of the null hypothesis in the eigenvalue test is
+incredibly marginal (25.71 critical value marginally larger than 25.54
+test statistic), we conclude from our estimates that there is likely one
+cointegrating relationship. This is the same result as is found for the
+US in Cologni \& Manera.
 
-We obtain the cointegrating vectors from the Johansen test using: You
-can extract the cointegrating vectors by addressing the slot V by
-(\textbf{V?}) like \href{mailto:sjd.vecm@V}{\nolinkurl{sjd.vecm@V}}.
-This will be a matrix where each column is a cointegrating vector. You
-can multiply the original multivariate series (like sjd) to the V matrix
-to get the error correction terms.
+We obtain the cointegrating vectors from the Johansen test and construct
+a matrix is which each column is a cointegrating vector. Then we
+multiply the VAR system by the cointegrating vector matrix to obtain the
+error correction terms.
 
-Check if the cointegrating relationships are trending and not random
-walks, show graphically the cointegrating vectors
+Let us set up the imposed restrictions in a matrix, known as B matrix in
+the paper.
 
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-10-1} \end{center}
+\begin{verbatim}
+##       [,1] [,2] [,3] [,4] [,5] [,6]
+## Brow1    1    1    0    1    0    0
+## Brow2    0    1    1    1    1    1
+## Brow3    0    0    1    1    1    1
+## Brow4    0    0    0    1    1    1
+## Brow5    0    0    0    0    1    1
+## Brow6    0    0    0    0    0    1
+\end{verbatim}
+
+Let us see if we can impose the restrictions contained in the B matrix
+onto the cointegrating vectors contained in the Et matrix.
+
+\begin{verbatim}
+##             [,1]        [,2]         [,3]         [,4]         [,5]
+## [1,] -0.03485871  0.01603781  0.000000000  0.001526585  0.000000000
+## [2,]  0.00000000 -0.03217102 -0.011618819 -0.000240614 -0.022636950
+## [3,]  0.00000000  0.00000000  0.004480429 -0.032083484  0.016714331
+## [4,]  0.00000000  0.00000000  0.000000000 -0.139231280 -0.012532633
+## [5,]  0.00000000  0.00000000  0.000000000  0.000000000 -0.008558293
+## [6,]  0.00000000  0.00000000  0.000000000  0.000000000  0.000000000
+##               [,6]
+## [1,]  0.000000e+00
+## [2,] -5.406431e-03
+## [3,] -5.789421e-03
+## [4,] -8.313818e-03
+## [5,] -8.248844e-05
+## [6,]  9.414487e-03
+\end{verbatim}
+
+\hypertarget{set-up-vecm}{%
+\section{Set up VECM}\label{set-up-vecm}}
+
+\begin{verbatim}
+## #############
+## ###Model VECM 
+## #############
+## Full sample size: 108    End sample size: 104
+## Number of variables: 6   Number of estimated slope parameters 120
+## AIC -3198.134    BIC -2867.585   SSR 75.25772
+## Cointegrating vector (estimated by ML):
+##    MonetaryAggregate InterestRate  RealGDP  Inflation ExchangeRate
+## r1                 1    -0.134276 4.787817 -0.0522194     0.615354
+##    WorldOilPrice
+## r1     0.4247612
+## 
+## 
+##                            ECT                 Intercept          
+## Equation MonetaryAggregate 0.0126(0.0045)**    -1.1623(0.4105)**  
+## Equation InterestRate      -0.0200(0.1043)     1.9540(9.5628)     
+## Equation RealGDP           0.0005(0.0020)      -0.0411(0.1876)    
+## Equation Inflation         -0.0750(0.3299)     8.4465(30.2481)    
+## Equation ExchangeRate      -0.1963(0.0391)***  18.3351(3.5838)*** 
+## Equation WorldOilPrice     -0.0645(0.0542)     6.0297(4.9693)     
+##                            MonetaryAggregate -1 InterestRate -1    
+## Equation MonetaryAggregate 0.4105(0.1324)**     0.0031(0.0046)     
+## Equation InterestRate      -0.3107(3.0852)      0.5676(0.1068)***  
+## Equation RealGDP           -0.0478(0.0605)      -0.0022(0.0021)    
+## Equation Inflation         -0.1479(9.7587)      -0.8517(0.3377)*   
+## Equation ExchangeRate      -0.0068(1.1562)      0.0353(0.0400)     
+## Equation WorldOilPrice     -0.0068(1.6032)      -0.0309(0.0555)    
+##                            RealGDP -1           Inflation -1       
+## Equation MonetaryAggregate -0.3634(0.2590)      0.0094(0.0022)***  
+## Equation InterestRate      8.9686(6.0343)       -0.1328(0.0503)**  
+## Equation RealGDP           0.3067(0.1184)*      -0.0007(0.0010)    
+## Equation Inflation         25.2237(19.0871)     -0.3050(0.1591).   
+## Equation ExchangeRate      -0.2586(2.2614)      -0.0372(0.0189).   
+## Equation WorldOilPrice     5.6317(3.1357).      -0.0643(0.0261)*   
+##                            ExchangeRate -1     WorldOilPrice -1   
+## Equation MonetaryAggregate -0.0031(0.0073)     -0.0391(0.0131)**  
+## Equation InterestRate      -0.0114(0.1698)     0.4794(0.3046)     
+## Equation RealGDP           0.0026(0.0033)      -0.0013(0.0060)    
+## Equation Inflation         0.1635(0.5372)      4.0925(0.9635)***  
+## Equation ExchangeRate      -0.2607(0.0636)***  0.3036(0.1142)**   
+## Equation WorldOilPrice     0.0616(0.0882)      0.4672(0.1583)**   
+##                            MonetaryAggregate -2 InterestRate -2    
+## Equation MonetaryAggregate -0.0357(0.1367)      -0.0010(0.0054)    
+## Equation InterestRate      4.6836(3.1852)       0.0479(0.1247)     
+## Equation RealGDP           0.0919(0.0625)       0.0021(0.0024)     
+## Equation Inflation         4.6173(10.0751)      0.1513(0.3946)     
+## Equation ExchangeRate      0.7482(1.1937)       0.0708(0.0468)     
+## Equation WorldOilPrice     2.2347(1.6552)       -0.0113(0.0648)    
+##                            RealGDP -2           Inflation -2       
+## Equation MonetaryAggregate -0.5758(0.2612)*     0.0015(0.0022)     
+## Equation InterestRate      -0.5452(6.0847)      0.0186(0.0511)     
+## Equation RealGDP           0.2504(0.1194)*      -0.0009(0.0010)    
+## Equation Inflation         -8.8860(19.2466)     -0.1707(0.1615)    
+## Equation ExchangeRate      -5.6094(2.2803)*     -0.0100(0.0191)    
+## Equation WorldOilPrice     0.4852(3.1619)       -0.0251(0.0265)    
+##                            ExchangeRate -2     WorldOilPrice -2   
+## Equation MonetaryAggregate -0.0013(0.0068)     -0.0075(0.0133)    
+## Equation InterestRate      -0.1535(0.1591)     -0.3310(0.3089)    
+## Equation RealGDP           -0.0028(0.0031)     0.0035(0.0061)     
+## Equation Inflation         -0.7990(0.5032)     0.9032(0.9770)     
+## Equation ExchangeRate      -0.0974(0.0596)     -0.0140(0.1157)    
+## Equation WorldOilPrice     -0.0530(0.0827)     0.0298(0.1605)     
+##                            MonetaryAggregate -3 InterestRate -3    
+## Equation MonetaryAggregate 0.0399(0.1264)       -0.0120(0.0045)**  
+## Equation InterestRate      1.5625(2.9449)       0.0465(0.1056)     
+## Equation RealGDP           -0.0549(0.0578)      0.0009(0.0021)     
+## Equation Inflation         -0.9284(9.3150)      0.9919(0.3339)**   
+## Equation ExchangeRate      2.9212(1.1036)**     -0.0599(0.0396)    
+## Equation WorldOilPrice     -0.6155(1.5303)      0.0691(0.0549)     
+##                            RealGDP -3           Inflation -3       
+## Equation MonetaryAggregate 0.3512(0.2735)       0.0037(0.0021).    
+## Equation InterestRate      5.8409(6.3702)       -0.1417(0.0488)**  
+## Equation RealGDP           -0.0610(0.1250)      -0.0016(0.0010)    
+## Equation Inflation         -9.7967(20.1495)     -0.0537(0.1543)    
+## Equation ExchangeRate      -10.5904(2.3873)***  -0.1229(0.0183)*** 
+## Equation WorldOilPrice     -1.3140(3.3102)      -0.0394(0.0253)    
+##                            ExchangeRate -3     WorldOilPrice -3   
+## Equation MonetaryAggregate 0.0004(0.0068)      -0.0189(0.0127)    
+## Equation InterestRate      -0.0609(0.1588)     1.2460(0.2968)***  
+## Equation RealGDP           0.0013(0.0031)      0.0060(0.0058)     
+## Equation Inflation         -0.6361(0.5022)     0.3802(0.9388)     
+## Equation ExchangeRate      0.0260(0.0595)      0.3845(0.1112)***  
+## Equation WorldOilPrice     0.0156(0.0825)      0.2993(0.1542).
+\end{verbatim}
+
+Then test for white noise residuals.
 
 \hypertarget{step-3-augemented-dickey-fuller-tests}{%
 \section{Step 3: Augemented Dickey-Fuller
@@ -452,51 +460,9 @@ inflation is stationary, detrended real GDP is still not stationary,
 detrended monetary aggregate is still non-stationary and world oil price
 is non stationary.
 
-Interest Rate
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-12-1} \end{center}
-
-The estimated critical value for the Augmented Dickey Fuller test for
-the interest rate is small enough to reject the null hypothesis at 5\%
-confidence interval = -2.2403\textless-1.95, therefore, may be a
-stationary series.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-13-1} \end{center}
-
-The estimated critical value of -3.4624 for inflation is small enough to
-reject the null hypothesis at 1\% confidence interval,
--3.4624\textless-2.58. Therefore can reject the null hypothesis that
-there is a unit root and series may be stationary.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-14-1} \end{center}
-
-Think we should detrend, because seems to be a clear upward linear trend
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-15-1} \end{center}
-
-Detrended Real GDP series is still non-stationary. But cannot first
-difference it in case remove important information.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-18-1} \end{center}
-
-No clear trend for the Transformed Monetary Aggregate\ldots try
-difference? cannot because then all values go to zero
-
-Think we should detrend, because seems to be a clear upward linear trend
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-19-1} \end{center}
-
-Detrended Monetary Aggregate is still non-stationary because cannot
-reject null hypothesis.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-20-1} \end{center}
-
-Let us try first difference the exchange rate.
-
-This does not work because it makes the series have no variation,
-removes too much information.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-22-1} \end{center}
+\hypertarget{augmented-dickey-fuller-tests}{%
+\section{Augmented Dickey Fuller
+tests}\label{augmented-dickey-fuller-tests}}
 
 \begin{verbatim}
 ## 
@@ -546,22 +512,92 @@ removes too much information.
 ## lm(formula = z.diff ~ z.lag.1 - 1 + z.diff.lag)
 ## 
 ## Residuals:
-##       Min        1Q    Median        3Q       Max 
-## -0.034171 -0.000633  0.002036  0.004299  0.012676 
+##      Min       1Q   Median       3Q      Max 
+## -1.26565 -0.04976  0.00946  0.14002  0.64079 
 ## 
 ## Coefficients:
 ##            Estimate Std. Error t value Pr(>|t|)    
-## z.lag.1    -0.25933    0.07490  -3.462 0.000778 ***
-## z.diff.lag -0.13897    0.09595  -1.448 0.150533    
+## z.lag.1    -0.29184    0.07777  -3.753  0.00029 ***
+## z.diff.lag -0.06765    0.09829  -0.688  0.49278    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.005504 on 104 degrees of freedom
-## Multiple R-squared:  0.1699, Adjusted R-squared:  0.154 
-## F-statistic: 10.65 on 2 and 104 DF,  p-value: 6.221e-05
+## Residual standard error: 0.3199 on 103 degrees of freedom
+## Multiple R-squared:  0.1604, Adjusted R-squared:  0.1441 
+## F-statistic:  9.84 on 2 and 103 DF,  p-value: 0.0001228
 ## 
 ## 
-## Value of test-statistic is: -3.4624 
+## Value of test-statistic is: -3.7526 
+## 
+## Critical values for test statistics: 
+##       1pct  5pct 10pct
+## tau1 -2.58 -1.95 -1.62
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ############################################### 
+## # Augmented Dickey-Fuller Test Unit Root Test # 
+## ############################################### 
+## 
+## Test regression none 
+## 
+## 
+## Call:
+## lm(formula = z.diff ~ z.lag.1 - 1 + z.diff.lag)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.031918 -0.001413  0.000394  0.002783  0.010390 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(>|t|)    
+## z.lag.1    0.0007928  0.0001390   5.703 1.11e-07 ***
+## z.diff.lag 0.2926254  0.0935172   3.129  0.00228 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.004852 on 104 degrees of freedom
+## Multiple R-squared:  0.6129, Adjusted R-squared:  0.6054 
+## F-statistic: 82.32 on 2 and 104 DF,  p-value: < 2.2e-16
+## 
+## 
+## Value of test-statistic is: 5.7029 
+## 
+## Critical values for test statistics: 
+##       1pct  5pct 10pct
+## tau1 -2.58 -1.95 -1.62
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ############################################### 
+## # Augmented Dickey-Fuller Test Unit Root Test # 
+## ############################################### 
+## 
+## Test regression none 
+## 
+## 
+## Call:
+## lm(formula = z.diff ~ z.lag.1 - 1 + z.diff.lag)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.033954 -0.000482  0.002075  0.004001  0.012994 
+## 
+## Coefficients:
+##            Estimate Std. Error t value Pr(>|t|)    
+## z.lag.1    -0.26980    0.07387  -3.652  0.00041 ***
+## z.diff.lag -0.16294    0.09511  -1.713  0.08968 .  
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.005415 on 103 degrees of freedom
+## Multiple R-squared:  0.1927, Adjusted R-squared:  0.177 
+## F-statistic: 12.29 on 2 and 103 DF,  p-value: 1.628e-05
+## 
+## 
+## Value of test-statistic is: -3.6524 
 ## 
 ## Critical values for test statistics: 
 ##       1pct  5pct 10pct
@@ -584,21 +620,56 @@ Real GDP
 ## 
 ## Residuals:
 ##        Min         1Q     Median         3Q        Max 
-## -0.0231012 -0.0033550  0.0003949  0.0032334  0.0135407 
+## -0.0234977 -0.0030666  0.0004404  0.0032845  0.0130056 
 ## 
 ## Coefficients:
-##            Estimate Std. Error t value Pr(>|t|)    
-## z.lag.1    -0.01298    0.01361  -0.954    0.342    
-## z.diff.lag  0.41772    0.08963   4.660 9.39e-06 ***
+##             Estimate Std. Error t value Pr(>|t|)    
+## z.lag.1    2.365e-04  5.087e-05   4.649 9.84e-06 ***
+## z.diff.lag 4.100e-01  8.943e-02   4.585 1.27e-05 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.005569 on 104 degrees of freedom
-## Multiple R-squared:  0.174,  Adjusted R-squared:  0.1581 
-## F-statistic: 10.95 on 2 and 104 DF,  p-value: 4.829e-05
+## Residual standard error: 0.005598 on 104 degrees of freedom
+## Multiple R-squared:  0.5797, Adjusted R-squared:  0.5716 
+## F-statistic: 71.72 on 2 and 104 DF,  p-value: < 2.2e-16
 ## 
 ## 
-## Value of test-statistic is: -0.9539 
+## Value of test-statistic is: 4.6489 
+## 
+## Critical values for test statistics: 
+##       1pct  5pct 10pct
+## tau1 -2.58 -1.95 -1.62
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ############################################### 
+## # Augmented Dickey-Fuller Test Unit Root Test # 
+## ############################################### 
+## 
+## Test regression none 
+## 
+## 
+## Call:
+## lm(formula = z.diff ~ z.lag.1 - 1 + z.diff.lag)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.021479 -0.002183  0.001511  0.004429  0.013011 
+## 
+## Coefficients:
+##            Estimate Std. Error t value Pr(>|t|)    
+## z.lag.1    -0.19720    0.07196  -2.740  0.00724 ** 
+## z.diff.lag -0.33194    0.09306  -3.567  0.00055 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.00583 on 103 degrees of freedom
+## Multiple R-squared:  0.2414, Adjusted R-squared:  0.2267 
+## F-statistic: 16.39 on 2 and 103 DF,  p-value: 6.62e-07
+## 
+## 
+## Value of test-statistic is: -2.7403 
 ## 
 ## Critical values for test statistics: 
 ##       1pct  5pct 10pct
@@ -621,21 +692,56 @@ Monetary Aggregates
 ## 
 ## Residuals:
 ##       Min        1Q    Median        3Q       Max 
-## -0.023625 -0.006963 -0.001197  0.006941  0.082536 
+## -0.024123 -0.007572 -0.000144  0.005791  0.052443 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(>|t|)    
-## z.lag.1    -0.005069   0.009301  -0.545    0.587    
-## z.diff.lag  0.642516   0.077496   8.291 4.24e-13 ***
+## z.lag.1    0.0001535  0.0000529   2.902  0.00453 ** 
+## z.diff.lag 0.6811085  0.0718457   9.480 9.76e-16 ***
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
-## Residual standard error: 0.01395 on 104 degrees of freedom
-## Multiple R-squared:  0.4033, Adjusted R-squared:  0.3919 
-## F-statistic: 35.15 on 2 and 104 DF,  p-value: 2.177e-12
+## Residual standard error: 0.01155 on 104 degrees of freedom
+## Multiple R-squared:  0.6921, Adjusted R-squared:  0.6862 
+## F-statistic: 116.9 on 2 and 104 DF,  p-value: < 2.2e-16
 ## 
 ## 
-## Value of test-statistic is: -0.545 
+## Value of test-statistic is: 2.902 
+## 
+## Critical values for test statistics: 
+##       1pct  5pct 10pct
+## tau1 -2.58 -1.95 -1.62
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ############################################### 
+## # Augmented Dickey-Fuller Test Unit Root Test # 
+## ############################################### 
+## 
+## Test regression none 
+## 
+## 
+## Call:
+## lm(formula = z.diff ~ z.lag.1 - 1 + z.diff.lag)
+## 
+## Residuals:
+##       Min        1Q    Median        3Q       Max 
+## -0.021316 -0.005213  0.000844  0.007164  0.051563 
+## 
+## Coefficients:
+##            Estimate Std. Error t value Pr(>|t|)  
+## z.lag.1    -0.13784    0.05814  -2.371   0.0196 *
+## z.diff.lag -0.24266    0.09651  -2.514   0.0135 *
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.0117 on 103 degrees of freedom
+## Multiple R-squared:  0.1441, Adjusted R-squared:  0.1275 
+## F-statistic: 8.672 on 2 and 103 DF,  p-value: 0.0003305
+## 
+## 
+## Value of test-statistic is: -2.3707 
 ## 
 ## Critical values for test statistics: 
 ##       1pct  5pct 10pct
@@ -677,7 +783,40 @@ Exchange Rate
 ## tau1 -2.58 -1.95 -1.62
 \end{verbatim}
 
-0.0214 \textgreater-2.6 therefore cannot reject the unit root
+\begin{verbatim}
+## 
+## ############################################### 
+## # Augmented Dickey-Fuller Test Unit Root Test # 
+## ############################################### 
+## 
+## Test regression none 
+## 
+## 
+## Call:
+## lm(formula = z.diff ~ z.lag.1 - 1 + z.diff.lag)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -0.35260 -0.01246  0.00443  0.02440  1.81361 
+## 
+## Coefficients:
+##            Estimate Std. Error t value Pr(>|t|)    
+## z.lag.1    -1.01592    0.13846  -7.338 5.18e-11 ***
+## z.diff.lag  0.02795    0.09848   0.284    0.777    
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.1883 on 103 degrees of freedom
+## Multiple R-squared:  0.4945, Adjusted R-squared:  0.4847 
+## F-statistic: 50.38 on 2 and 103 DF,  p-value: 5.501e-16
+## 
+## 
+## Value of test-statistic is: -7.3375 
+## 
+## Critical values for test statistics: 
+##       1pct  5pct 10pct
+## tau1 -2.58 -1.95 -1.62
+\end{verbatim}
 
 World Oil Price
 
@@ -719,578 +858,253 @@ World Oil Price
 \hypertarget{set-up-the-var-model}{%
 \section{Set up the VAR model}\label{set-up-the-var-model}}
 
-\hypertarget{acf-pacf}{%
-\subsection{ACF \& PACF}\label{acf-pacf}}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-29-1} \end{center}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-29-2} \end{center}
-
-Interest rate autocorrelation function shows that 5 lags are
-significant. Partial autocorrelation function shows less than one lag is
-significant.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-30-1} \end{center}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-30-2} \end{center}
-
-Cannot find significant lags for inflation for autocorrelation function
-or partial autocorrelation function.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-31-1} \end{center}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-31-2} \end{center}
-
-Real GDP is significant up to 5 lags showing lots of persistence and
-partial autocorrelation function shows significance for less than one
-lag, at one quarter only.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-32-1} \end{center}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-32-2} \end{center}
-
-Monetary aggregate's autocorrelation function indicates that lags up to
-5 are significant and partial autocorrelation function shows only first
-quarter significant.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-33-1} \end{center}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-33-2} \end{center}
-
-Autocorrelation function for exchange rate indicates significance up to
-lag 4 and partial autocorrelation shows only first quarter significant.
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-34-1} \end{center}
-
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-34-2} \end{center}
-
-\hypertarget{build-model}{%
-\subsection{Build model}\label{build-model}}
+\hypertarget{build-var-model}{%
+\section{Build VAR model}\label{build-var-model}}
 
 \begin{verbatim}
 ## 
 ## VAR Estimation Results:
 ## ========================= 
-## Endogenous variables: InterestRate, Inflation, RealGDP, MonetaryAggregate, ExchangeRate 
+## Endogenous variables: MonetaryAggregate, InterestRate, RealGDP, Inflation, ExchangeRate, WorldOilPrice 
 ## Deterministic variables: trend 
 ## Sample size: 105 
-## Log Likelihood: 1248.331 
+## Log Likelihood: 800.372 
 ## Roots of the characteristic polynomial:
-## 1.012 0.9708 0.8984 0.8984 0.8336 0.663 0.663 0.6347 0.6347 0.5873 0.5873 0.4406 0.262 0.262 0.004563
+## 1.001 0.9865 0.9865 0.9096 0.9096 0.8717 0.8717 0.6162 0.5794 0.5794 0.4751 0.4751 0.4373 0.4373 0.4058 0.4058 0.3981 0.3981
 ## Call:
-## VAR(y = groupedVARendog, p = 3, type = "trend", exogen = NULL)
-## 
-## 
-## Estimation results for equation InterestRate: 
-## ============================================= 
-## InterestRate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + InterestRate.l3 + Inflation.l3 + RealGDP.l3 + MonetaryAggregate.l3 + ExchangeRate.l3 + trend 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1        1.423110   0.111934  12.714  < 2e-16 ***
-## Inflation.l1         -15.817420   7.568504  -2.090  0.03948 *  
-## RealGDP.l1            14.308641   5.753821   2.487  0.01475 *  
-## MonetaryAggregate.l1  -0.809772   3.071928  -0.264  0.79269    
-## ExchangeRate.l1       -0.020080   0.163901  -0.123  0.90277    
-## InterestRate.l2       -0.304428   0.189497  -1.607  0.11171    
-## Inflation.l2          -3.117641   8.058570  -0.387  0.69977    
-## RealGDP.l2           -20.584455   9.028203  -2.280  0.02500 *  
-## MonetaryAggregate.l2   2.163174   5.012847   0.432  0.66713    
-## ExchangeRate.l2        0.055810   0.220709   0.253  0.80095    
-## InterestRate.l3       -0.207443   0.104840  -1.979  0.05095 .  
-## Inflation.l3           1.668348   6.583085   0.253  0.80052    
-## RealGDP.l3            10.003101   6.052027   1.653  0.10188    
-## MonetaryAggregate.l3  -0.759100   3.000095  -0.253  0.80083    
-## ExchangeRate.l3        0.039071   0.161173   0.242  0.80902    
-## trend                 -0.006744   0.002212  -3.049  0.00303 ** 
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.2876 on 89 degrees of freedom
-## Multiple R-Squared: 0.9949,  Adjusted R-squared: 0.994 
-## F-statistic:  1083 on 16 and 89 DF,  p-value: < 2.2e-16 
-## 
-## 
-## Estimation results for equation Inflation: 
-## ========================================== 
-## Inflation = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + InterestRate.l3 + Inflation.l3 + RealGDP.l3 + MonetaryAggregate.l3 + ExchangeRate.l3 + trend 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)  
-## InterestRate.l1      -1.653e-03  1.804e-03  -0.916   0.3621  
-## Inflation.l1          2.008e-01  1.220e-01   1.646   0.1034  
-## RealGDP.l1            1.474e-01  9.275e-02   1.589   0.1155  
-## MonetaryAggregate.l1 -6.013e-03  4.952e-02  -0.121   0.9036  
-## ExchangeRate.l1       1.651e-03  2.642e-03   0.625   0.5335  
-## InterestRate.l2       5.364e-03  3.055e-03   1.756   0.0825 .
-## Inflation.l2         -1.977e-01  1.299e-01  -1.522   0.1316  
-## RealGDP.l2           -2.199e-01  1.455e-01  -1.511   0.1344  
-## MonetaryAggregate.l2  3.405e-02  8.081e-02   0.421   0.6745  
-## ExchangeRate.l2      -3.688e-03  3.558e-03  -1.037   0.3027  
-## InterestRate.l3      -3.435e-03  1.690e-03  -2.033   0.0451 *
-## Inflation.l3         -3.753e-02  1.061e-01  -0.354   0.7245  
-## RealGDP.l3            8.373e-02  9.756e-02   0.858   0.3931  
-## MonetaryAggregate.l3 -3.182e-02  4.836e-02  -0.658   0.5123  
-## ExchangeRate.l3       2.854e-03  2.598e-03   1.098   0.2750  
-## trend                -4.709e-05  3.566e-05  -1.321   0.1900  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.004637 on 89 degrees of freedom
-## Multiple R-Squared: 0.6827,  Adjusted R-squared: 0.6256 
-## F-statistic: 11.97 on 16 and 89 DF,  p-value: 6.085e-16 
-## 
-## 
-## Estimation results for equation RealGDP: 
-## ======================================== 
-## RealGDP = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + InterestRate.l3 + Inflation.l3 + RealGDP.l3 + MonetaryAggregate.l3 + ExchangeRate.l3 + trend 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1      -2.789e-03  2.118e-03  -1.317   0.1912    
-## Inflation.l1         -1.748e-01  1.432e-01  -1.221   0.2255    
-## RealGDP.l1            1.270e+00  1.089e-01  11.667   <2e-16 ***
-## MonetaryAggregate.l1 -5.572e-02  5.812e-02  -0.959   0.3402    
-## ExchangeRate.l1       4.232e-03  3.101e-03   1.365   0.1757    
-## InterestRate.l2       5.900e-03  3.585e-03   1.646   0.1034    
-## Inflation.l2         -1.381e-01  1.525e-01  -0.906   0.3675    
-## RealGDP.l2           -8.884e-02  1.708e-01  -0.520   0.6043    
-## MonetaryAggregate.l2  1.028e-01  9.483e-02   1.084   0.2811    
-## ExchangeRate.l2      -5.183e-03  4.175e-03  -1.241   0.2178    
-## InterestRate.l3      -3.710e-03  1.983e-03  -1.870   0.0647 .  
-## Inflation.l3         -3.322e-02  1.245e-01  -0.267   0.7903    
-## RealGDP.l3           -1.665e-01  1.145e-01  -1.454   0.1494    
-## MonetaryAggregate.l3 -4.413e-02  5.676e-02  -0.778   0.4389    
-## ExchangeRate.l3       1.902e-03  3.049e-03   0.624   0.5343    
-## trend                -9.561e-05  4.185e-05  -2.285   0.0247 *  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.005442 on 89 degrees of freedom
-## Multiple R-Squared: 0.9846,  Adjusted R-squared: 0.9818 
-## F-statistic: 355.1 on 16 and 89 DF,  p-value: < 2.2e-16 
+## VAR(y = groupedVAR, p = 3, type = "trend", exogen = NULL)
 ## 
 ## 
 ## Estimation results for equation MonetaryAggregate: 
 ## ================================================== 
-## MonetaryAggregate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + InterestRate.l3 + Inflation.l3 + RealGDP.l3 + MonetaryAggregate.l3 + ExchangeRate.l3 + trend 
+## MonetaryAggregate = MonetaryAggregate.l1 + InterestRate.l1 + RealGDP.l1 + Inflation.l1 + ExchangeRate.l1 + WorldOilPrice.l1 + MonetaryAggregate.l2 + InterestRate.l2 + RealGDP.l2 + Inflation.l2 + ExchangeRate.l2 + WorldOilPrice.l2 + MonetaryAggregate.l3 + InterestRate.l3 + RealGDP.l3 + Inflation.l3 + ExchangeRate.l3 + WorldOilPrice.l3 + trend 
 ## 
 ##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1      -3.702e-03  4.783e-03  -0.774   0.4410    
-## Inflation.l1          7.937e-01  3.234e-01   2.454   0.0161 *  
-## RealGDP.l1           -2.688e-01  2.459e-01  -1.093   0.2771    
-## MonetaryAggregate.l1  1.307e+00  1.313e-01   9.956 3.94e-16 ***
-## ExchangeRate.l1      -7.662e-03  7.003e-03  -1.094   0.2769    
-## InterestRate.l2      -3.578e-03  8.097e-03  -0.442   0.6596    
-## Inflation.l2          4.394e-01  3.443e-01   1.276   0.2053    
-## RealGDP.l2           -3.323e-02  3.858e-01  -0.086   0.9315    
-## MonetaryAggregate.l2 -3.311e-01  2.142e-01  -1.546   0.1257    
-## ExchangeRate.l2      -2.519e-03  9.431e-03  -0.267   0.7900    
-## InterestRate.l3       4.590e-03  4.480e-03   1.025   0.3083    
-## Inflation.l3          2.755e-01  2.813e-01   0.979   0.3301    
-## RealGDP.l3            1.284e-01  2.586e-01   0.497   0.6206    
-## MonetaryAggregate.l3 -7.886e-03  1.282e-01  -0.062   0.9511    
-## ExchangeRate.l3       9.985e-03  6.887e-03   1.450   0.1506    
-## trend                 4.193e-05  9.451e-05   0.444   0.6584    
+## MonetaryAggregate.l1  1.3047772  0.1271001  10.266  < 2e-16 ***
+## InterestRate.l1      -0.0010960  0.0047783  -0.229 0.819120    
+## RealGDP.l1           -0.3187494  0.2467876  -1.292 0.199958    
+## Inflation.l1          0.0087185  0.0021686   4.020 0.000124 ***
+## ExchangeRate.l1      -0.0021688  0.0069313  -0.313 0.755113    
+## WorldOilPrice.l1     -0.0343555  0.0122044  -2.815 0.006046 ** 
+## MonetaryAggregate.l2 -0.3088679  0.2076664  -1.487 0.140586    
+## InterestRate.l2      -0.0057323  0.0080447  -0.713 0.478048    
+## RealGDP.l2           -0.0476563  0.3758990  -0.127 0.899411    
+## Inflation.l2         -0.0051665  0.0030158  -1.713 0.090295 .  
+## ExchangeRate.l2       0.0003534  0.0089754   0.039 0.968680    
+## WorldOilPrice.l2      0.0237594  0.0164007   1.449 0.151062    
+## MonetaryAggregate.l3 -0.0215402  0.1251202  -0.172 0.863719    
+## InterestRate.l3       0.0037798  0.0045677   0.827 0.410245    
+## RealGDP.l3            0.3787652  0.2520508   1.503 0.136571    
+## Inflation.l3         -0.0008038  0.0021201  -0.379 0.705528    
+## ExchangeRate.l3       0.0134310  0.0069299   1.938 0.055890 .  
+## WorldOilPrice.l3     -0.0044031  0.0123397  -0.357 0.722095    
+## trend                -0.0029500  0.0011267  -2.618 0.010439 *  
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## 
-## Residual standard error: 0.01229 on 89 degrees of freedom
-## Multiple R-Squared: 0.9945,  Adjusted R-squared: 0.9935 
-## F-statistic:  1005 on 16 and 89 DF,  p-value: < 2.2e-16 
-## 
-## 
-## Estimation results for equation ExchangeRate: 
-## ============================================= 
-## ExchangeRate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + InterestRate.l3 + Inflation.l3 + RealGDP.l3 + MonetaryAggregate.l3 + ExchangeRate.l3 + trend 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1       1.198e-01  5.322e-02   2.251  0.02687 *  
-## Inflation.l1         -2.771e+00  3.599e+00  -0.770  0.44332    
-## RealGDP.l1           -2.085e+00  2.736e+00  -0.762  0.44795    
-## MonetaryAggregate.l1  4.239e-01  1.461e+00   0.290  0.77235    
-## ExchangeRate.l1       7.660e-01  7.793e-02   9.829 7.23e-16 ***
-## InterestRate.l2      -1.220e-01  9.010e-02  -1.354  0.17903    
-## Inflation.l2         -2.838e+00  3.832e+00  -0.741  0.46090    
-## RealGDP.l2           -8.054e+00  4.293e+00  -1.876  0.06391 .  
-## MonetaryAggregate.l2 -3.424e-01  2.384e+00  -0.144  0.88609    
-## ExchangeRate.l2       1.712e-01  1.049e-01   1.632  0.10627    
-## InterestRate.l3       2.229e-02  4.985e-02   0.447  0.65585    
-## Inflation.l3         -2.554e+01  3.130e+00  -8.159 2.05e-12 ***
-## RealGDP.l3            8.826e+00  2.878e+00   3.067  0.00286 ** 
-## MonetaryAggregate.l3 -7.123e-01  1.427e+00  -0.499  0.61881    
-## ExchangeRate.l3       8.268e-02  7.664e-02   1.079  0.28358    
-## trend                -9.407e-04  1.052e-03  -0.894  0.37354    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.1368 on 89 degrees of freedom
-## Multiple R-Squared: 0.9998,  Adjusted R-squared: 0.9998 
-## F-statistic: 3.329e+04 on 16 and 89 DF,  p-value: < 2.2e-16 
-## 
-## 
-## 
-## Covariance matrix of residuals:
-##                   InterestRate  Inflation    RealGDP MonetaryAggregate
-## InterestRate         0.0827399  3.050e-04  4.353e-04        -1.313e-03
-## Inflation            0.0003050  2.150e-05  2.261e-06        -3.255e-05
-## RealGDP              0.0004353  2.261e-06  2.961e-05        -1.970e-05
-## MonetaryAggregate   -0.0013132 -3.255e-05 -1.970e-05         1.511e-04
-## ExchangeRate         0.0011167  1.920e-06  3.415e-05        -1.664e-04
-##                   ExchangeRate
-## InterestRate         1.117e-03
-## Inflation            1.920e-06
-## RealGDP              3.415e-05
-## MonetaryAggregate   -1.664e-04
-## ExchangeRate         1.871e-02
-## 
-## Correlation matrix of residuals:
-##                   InterestRate Inflation  RealGDP MonetaryAggregate
-## InterestRate           1.00000  0.228680  0.27811          -0.37144
-## Inflation              0.22868  1.000000  0.08959          -0.57117
-## RealGDP                0.27811  0.089589  1.00000          -0.29454
-## MonetaryAggregate     -0.37144 -0.571173 -0.29454           1.00000
-## ExchangeRate           0.02838  0.003027  0.04588          -0.09897
-##                   ExchangeRate
-## InterestRate          0.028384
-## Inflation             0.003027
-## RealGDP               0.045881
-## MonetaryAggregate    -0.098973
-## ExchangeRate          1.000000
-\end{verbatim}
-
-If we let oil price be exog and have exchange rates included\ldots{}
-
-\begin{verbatim}
-## AIC(n)  HQ(n)  SC(n) FPE(n) 
-##      9      3      1      4
-\end{verbatim}
-
-\begin{verbatim}
-## 
-## VAR Estimation Results:
-## ========================= 
-## Endogenous variables: InterestRate, Inflation, RealGDP, MonetaryAggregate, ExchangeRate 
-## Deterministic variables: trend 
-## Sample size: 106 
-## Log Likelihood: 1231.989 
-## Roots of the characteristic polynomial:
-## 1.023 0.9495 0.8832 0.8832 0.8157 0.5581 0.5581 0.3273 0.189 0.1297
-## Call:
-## VAR(y = groupedVAR, p = 2, type = "trend", exogen = worldoilprice)
+## Residual standard error: 0.01181 on 86 degrees of freedom
+## Multiple R-Squared:     1,   Adjusted R-squared:     1 
+## F-statistic: 2.055e+07 on 19 and 86 DF,  p-value: < 2.2e-16 
 ## 
 ## 
 ## Estimation results for equation InterestRate: 
 ## ============================================= 
-## InterestRate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + trend + exo1 
+## InterestRate = MonetaryAggregate.l1 + InterestRate.l1 + RealGDP.l1 + Inflation.l1 + ExchangeRate.l1 + WorldOilPrice.l1 + MonetaryAggregate.l2 + InterestRate.l2 + RealGDP.l2 + Inflation.l2 + ExchangeRate.l2 + WorldOilPrice.l2 + MonetaryAggregate.l3 + InterestRate.l3 + RealGDP.l3 + Inflation.l3 + ExchangeRate.l3 + WorldOilPrice.l3 + trend 
 ## 
 ##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1        1.472491   0.087000  16.925  < 2e-16 ***
-## Inflation.l1         -25.148535   7.491143  -3.357 0.001138 ** 
-## RealGDP.l1            13.404681   5.469995   2.451 0.016112 *  
-## MonetaryAggregate.l1  -0.929344   2.713212  -0.343 0.732720    
-## ExchangeRate.l1        0.026509   0.152523   0.174 0.862395    
-## InterestRate.l2       -0.557730   0.080924  -6.892 6.22e-10 ***
-## Inflation.l2          -4.690834   6.050582  -0.775 0.440126    
-## RealGDP.l2            -8.411982   5.695075  -1.477 0.143001    
-## MonetaryAggregate.l2   2.230035   2.702817   0.825 0.411416    
-## ExchangeRate.l2       -0.024117   0.155112  -0.155 0.876773    
-## trend                 -0.010259   0.002697  -3.803 0.000254 ***
-## exo1                   0.263841   0.096956   2.721 0.007750 ** 
+## MonetaryAggregate.l1  -1.952221   3.084476  -0.633   0.5285    
+## InterestRate.l1        1.375258   0.115959  11.860   <2e-16 ***
+## RealGDP.l1            14.290127   5.989063   2.386   0.0192 *  
+## Inflation.l1          -0.083859   0.052628  -1.593   0.1147    
+## ExchangeRate.l1       -0.163684   0.168210  -0.973   0.3332    
+## WorldOilPrice.l1       0.140811   0.296178   0.475   0.6357    
+## MonetaryAggregate.l2   3.003978   5.039666   0.596   0.5527    
+## InterestRate.l2       -0.210108   0.195229  -1.076   0.2848    
+## RealGDP.l2           -19.042812   9.122352  -2.087   0.0398 *  
+## Inflation.l2           0.117266   0.073189   1.602   0.1128    
+## ExchangeRate.l2        0.008949   0.217816   0.041   0.9673    
+## WorldOilPrice.l2      -0.516657   0.398013  -1.298   0.1977    
+## MonetaryAggregate.l3  -0.875961   3.036428  -0.288   0.7737    
+## InterestRate.l3       -0.267204   0.110850  -2.410   0.0181 *  
+## RealGDP.l3             4.714602   6.116792   0.771   0.4430    
+## Inflation.l3          -0.045978   0.051451  -0.894   0.3740    
+## ExchangeRate.l3       -0.001112   0.168175  -0.007   0.9947    
+## WorldOilPrice.l3       0.415155   0.299460   1.386   0.1692    
+## trend                  0.010115   0.027342   0.370   0.7123    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## 
-## Residual standard error: 0.2794 on 94 degrees of freedom
-## Multiple R-Squared: 0.9951,  Adjusted R-squared: 0.9945 
-## F-statistic:  1602 on 12 and 94 DF,  p-value: < 2.2e-16 
-## 
-## 
-## Estimation results for equation Inflation: 
-## ========================================== 
-## Inflation = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + trend + exo1 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1      -1.528e-03  1.239e-03  -1.234 0.220396    
-## Inflation.l1         -4.250e-02  1.067e-01  -0.398 0.691278    
-## RealGDP.l1            1.720e-01  7.790e-02   2.208 0.029665 *  
-## MonetaryAggregate.l1 -4.576e-03  3.864e-02  -0.118 0.905983    
-## ExchangeRate.l1       3.207e-03  2.172e-03   1.476 0.143203    
-## InterestRate.l2       1.614e-03  1.152e-03   1.401 0.164570    
-## Inflation.l2         -3.079e-01  8.617e-02  -3.574 0.000558 ***
-## RealGDP.l2           -1.026e-01  8.110e-02  -1.265 0.208826    
-## MonetaryAggregate.l2  2.665e-02  3.849e-02   0.692 0.490449    
-## ExchangeRate.l2      -4.489e-03  2.209e-03  -2.032 0.044938 *  
-## trend                -1.870e-04  3.841e-05  -4.868 4.54e-06 ***
-## exo1                  8.417e-03  1.381e-03   6.096 2.38e-08 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.003979 on 94 degrees of freedom
-## Multiple R-Squared: 0.7647,  Adjusted R-squared: 0.7346 
-## F-statistic: 25.45 on 12 and 94 DF,  p-value: < 2.2e-16 
+## Residual standard error: 0.2866 on 86 degrees of freedom
+## Multiple R-Squared: 0.9951,  Adjusted R-squared: 0.994 
+## F-statistic: 919.1 on 19 and 86 DF,  p-value: < 2.2e-16 
 ## 
 ## 
 ## Estimation results for equation RealGDP: 
 ## ======================================== 
-## RealGDP = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + trend + exo1 
+## RealGDP = MonetaryAggregate.l1 + InterestRate.l1 + RealGDP.l1 + Inflation.l1 + ExchangeRate.l1 + WorldOilPrice.l1 + MonetaryAggregate.l2 + InterestRate.l2 + RealGDP.l2 + Inflation.l2 + ExchangeRate.l2 + WorldOilPrice.l2 + MonetaryAggregate.l3 + InterestRate.l3 + RealGDP.l3 + Inflation.l3 + ExchangeRate.l3 + WorldOilPrice.l3 + trend 
 ## 
 ##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1       3.812e-04  1.713e-03   0.222   0.8244    
-## Inflation.l1         -1.498e-01  1.475e-01  -1.015   0.3126    
-## RealGDP.l1            1.270e+00  1.077e-01  11.793   <2e-16 ***
-## MonetaryAggregate.l1 -4.575e-02  5.343e-02  -0.856   0.3941    
-## ExchangeRate.l1       4.920e-03  3.004e-03   1.638   0.1048    
-## InterestRate.l2      -1.065e-03  1.594e-03  -0.668   0.5056    
-## Inflation.l2         -5.323e-02  1.191e-01  -0.447   0.6561    
-## RealGDP.l2           -2.435e-01  1.121e-01  -2.171   0.0324 *  
-## MonetaryAggregate.l2  5.179e-02  5.322e-02   0.973   0.3331    
-## ExchangeRate.l2      -3.624e-03  3.054e-03  -1.186   0.2384    
-## trend                -6.664e-05  5.312e-05  -1.255   0.2128    
-## exo1                 -1.554e-03  1.909e-03  -0.814   0.4176    
+## MonetaryAggregate.l1 -0.0383785  0.0575594  -0.667    0.507    
+## InterestRate.l1      -0.0018227  0.0021639  -0.842    0.402    
+## RealGDP.l1            1.2456502  0.1117619  11.146   <2e-16 ***
+## Inflation.l1          0.0002404  0.0009821   0.245    0.807    
+## ExchangeRate.l1       0.0039487  0.0031390   1.258    0.212    
+## WorldOilPrice.l1     -0.0087332  0.0055270  -1.580    0.118    
+## MonetaryAggregate.l2  0.1079090  0.0940452   1.147    0.254    
+## InterestRate.l2       0.0047055  0.0036432   1.292    0.200    
+## RealGDP.l2           -0.0945479  0.1702322  -0.555    0.580    
+## Inflation.l2         -0.0012468  0.0013658  -0.913    0.364    
+## ExchangeRate.l2      -0.0048538  0.0040647  -1.194    0.236    
+## WorldOilPrice.l2      0.0108246  0.0074273   1.457    0.149    
+## MonetaryAggregate.l3 -0.0707778  0.0566628  -1.249    0.215    
+## InterestRate.l3      -0.0032253  0.0020686  -1.559    0.123    
+## RealGDP.l3           -0.1463459  0.1141455  -1.282    0.203    
+## Inflation.l3          0.0006937  0.0009601   0.723    0.472    
+## ExchangeRate.l3       0.0021952  0.0031383   0.699    0.486    
+## WorldOilPrice.l3     -0.0042240  0.0055882  -0.756    0.452    
+## trend                 0.0002802  0.0005102   0.549    0.584    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## 
-## Residual standard error: 0.005502 on 94 degrees of freedom
-## Multiple R-Squared: 0.9834,  Adjusted R-squared: 0.9813 
-## F-statistic: 464.6 on 12 and 94 DF,  p-value: < 2.2e-16 
+## Residual standard error: 0.005348 on 86 degrees of freedom
+## Multiple R-Squared:     1,   Adjusted R-squared:     1 
+## F-statistic: 4.367e+07 on 19 and 86 DF,  p-value: < 2.2e-16 
 ## 
 ## 
-## Estimation results for equation MonetaryAggregate: 
-## ================================================== 
-## MonetaryAggregate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + trend + exo1 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1      -0.0038455  0.0036667  -1.049 0.296969    
-## Inflation.l1          1.1462289  0.3157163   3.631 0.000460 ***
-## RealGDP.l1           -0.4293145  0.2305345  -1.862 0.065691 .  
-## MonetaryAggregate.l1  1.3794214  0.1143491  12.063  < 2e-16 ***
-## ExchangeRate.l1      -0.0097332  0.0064281  -1.514 0.133339    
-## InterestRate.l2       0.0019051  0.0034106   0.559 0.577768    
-## Inflation.l2          0.4282659  0.2550035   1.679 0.096385 .  
-## RealGDP.l2            0.1811911  0.2400205   0.755 0.452197    
-## MonetaryAggregate.l2 -0.4460526  0.1139110  -3.916 0.000171 ***
-## ExchangeRate.l2       0.0126334  0.0065372   1.933 0.056304 .  
-## trend                 0.0002451  0.0001137   2.156 0.033645 *  
-## exo1                 -0.0121565  0.0040862  -2.975 0.003724 ** 
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.01177 on 94 degrees of freedom
-## Multiple R-Squared: 0.9947,  Adjusted R-squared: 0.994 
-## F-statistic:  1462 on 12 and 94 DF,  p-value: < 2.2e-16 
-## 
-## 
-## Estimation results for equation ExchangeRate: 
-## ============================================= 
-## ExchangeRate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + ExchangeRate.l1 + InterestRate.l2 + Inflation.l2 + RealGDP.l2 + MonetaryAggregate.l2 + ExchangeRate.l2 + trend + exo1 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1       8.254e-02  5.671e-02   1.456   0.1489    
-## Inflation.l1          2.860e+00  4.883e+00   0.586   0.5595    
-## RealGDP.l1           -3.041e+00  3.565e+00  -0.853   0.3958    
-## MonetaryAggregate.l1  6.242e-01  1.768e+00   0.353   0.7249    
-## ExchangeRate.l1       9.343e-01  9.941e-02   9.398  3.5e-15 ***
-## InterestRate.l2      -6.927e-02  5.275e-02  -1.313   0.1923    
-## Inflation.l2         -1.012e+01  3.944e+00  -2.566   0.0119 *  
-## RealGDP.l2            9.445e-01  3.712e+00   0.254   0.7997    
-## MonetaryAggregate.l2 -1.283e+00  1.762e+00  -0.728   0.4684    
-## ExchangeRate.l2       6.926e-02  1.011e-01   0.685   0.4950    
-## trend                 8.516e-04  1.758e-03   0.484   0.6293    
-## exo1                 -1.775e-02  6.319e-02  -0.281   0.7794    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.1821 on 94 degrees of freedom
-## Multiple R-Squared: 0.9997,  Adjusted R-squared: 0.9997 
-## F-statistic: 2.525e+04 on 12 and 94 DF,  p-value: < 2.2e-16 
-## 
-## 
-## 
-## Covariance matrix of residuals:
-##                   InterestRate  Inflation    RealGDP MonetaryAggregate
-## InterestRate         0.0780544  1.776e-04  4.574e-04        -9.883e-04
-## Inflation            0.0001776  1.583e-05  3.793e-06        -2.204e-05
-## RealGDP              0.0004574  3.793e-06  3.027e-05        -2.222e-05
-## MonetaryAggregate   -0.0009883 -2.204e-05 -2.222e-05         1.386e-04
-## ExchangeRate         0.0023231  4.746e-05  1.695e-05        -2.574e-04
-##                   ExchangeRate
-## InterestRate         2.323e-03
-## Inflation            4.746e-05
-## RealGDP              1.695e-05
-## MonetaryAggregate   -2.574e-04
-## ExchangeRate         3.315e-02
-## 
-## Correlation matrix of residuals:
-##                   InterestRate Inflation  RealGDP MonetaryAggregate
-## InterestRate           1.00000   0.15974  0.29755           -0.3004
-## Inflation              0.15974   1.00000  0.17329           -0.4705
-## RealGDP                0.29755   0.17329  1.00000           -0.3430
-## MonetaryAggregate     -0.30043  -0.47046 -0.34304            1.0000
-## ExchangeRate           0.04567   0.06552  0.01692           -0.1201
-##                   ExchangeRate
-## InterestRate           0.04567
-## Inflation              0.06552
-## RealGDP                0.01692
-## MonetaryAggregate     -0.12005
-## ExchangeRate           1.00000
-\end{verbatim}
-
-If we excluded exchange rates\ldots{}
-
-\begin{verbatim}
-## AIC(n)  HQ(n)  SC(n) FPE(n) 
-##      2      2      1      2
-\end{verbatim}
-
-\begin{verbatim}
-## 
-## VAR Estimation Results:
-## ========================= 
-## Endogenous variables: InterestRate, Inflation, RealGDP, MonetaryAggregate, WorldOilPrice 
-## Deterministic variables: trend 
-## Sample size: 107 
-## Log Likelihood: 1230.746 
-## Roots of the characteristic polynomial:
-## 1.002 0.976 0.976 0.9698 0.126
-## Call:
-## VAR(y = groupedVARexchange, p = 1, type = "trend", exogen = NULL)
-## 
-## 
-## Estimation results for equation InterestRate: 
-## ============================================= 
-## InterestRate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + WorldOilPrice.l1 + trend 
+## Estimation results for equation Inflation: 
+## ========================================== 
+## Inflation = MonetaryAggregate.l1 + InterestRate.l1 + RealGDP.l1 + Inflation.l1 + ExchangeRate.l1 + WorldOilPrice.l1 + MonetaryAggregate.l2 + InterestRate.l2 + RealGDP.l2 + Inflation.l2 + ExchangeRate.l2 + WorldOilPrice.l2 + MonetaryAggregate.l3 + InterestRate.l3 + RealGDP.l3 + Inflation.l3 + ExchangeRate.l3 + WorldOilPrice.l3 + trend 
 ## 
 ##                       Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1       0.919565   0.025870  35.546  < 2e-16 ***
-## Inflation.l1         -8.942251   8.367043  -1.069   0.2877    
-## RealGDP.l1            9.777033   1.949975   5.014 2.28e-06 ***
-## MonetaryAggregate.l1  2.681909   0.475473   5.641 1.55e-07 ***
-## WorldOilPrice.l1      0.173297   0.076363   2.269   0.0254 *  
-## trend                -0.007203   0.003393  -2.123   0.0362 *  
+## MonetaryAggregate.l1   3.60914    9.42515   0.383 0.702719    
+## InterestRate.l1       -0.63442    0.35433  -1.790 0.076898 .  
+## RealGDP.l1            35.59225   18.30062   1.945 0.055059 .  
+## Inflation.l1           0.68199    0.16081   4.241 5.59e-05 ***
+## ExchangeRate.l1        0.35204    0.51400   0.685 0.495245    
+## WorldOilPrice.l1       3.61241    0.90502   3.992 0.000138 ***
+## MonetaryAggregate.l2  -0.42293   15.39958  -0.027 0.978153    
+## InterestRate.l2        1.25515    0.59656   2.104 0.038299 *  
+## RealGDP.l2           -47.18496   27.87493  -1.693 0.094125 .  
+## Inflation.l2          -0.11986    0.22364  -0.536 0.593388    
+## ExchangeRate.l2       -0.85553    0.66557  -1.285 0.202101    
+## WorldOilPrice.l2      -2.02065    1.21620  -1.661 0.100264    
+## MonetaryAggregate.l3  -2.34086    9.27833  -0.252 0.801417    
+## InterestRate.l3       -0.51864    0.33872  -1.531 0.129399    
+## RealGDP.l3            12.32548   18.69092   0.659 0.511377    
+## Inflation.l3           0.18876    0.15722   1.201 0.233200    
+## ExchangeRate.l3        0.26353    0.51389   0.513 0.609395    
+## WorldOilPrice.l3       0.12679    0.91505   0.139 0.890124    
+## trend                  0.24008    0.08355   2.874 0.005113 ** 
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## 
-## Residual standard error: 0.3758 on 101 degrees of freedom
-## Multiple R-Squared: 0.9909,  Adjusted R-squared: 0.9904 
-## F-statistic:  1843 on 6 and 101 DF,  p-value: < 2.2e-16 
+## Residual standard error: 0.8757 on 86 degrees of freedom
+## Multiple R-Squared:     1,   Adjusted R-squared:     1 
+## F-statistic: 2.65e+05 on 19 and 86 DF,  p-value: < 2.2e-16 
 ## 
 ## 
-## Estimation results for equation Inflation: 
-## ========================================== 
-## Inflation = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + WorldOilPrice.l1 + trend 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)  
-## InterestRate.l1       0.0003933  0.0003256   1.208   0.2298  
-## Inflation.l1          0.1215014  0.1052904   1.154   0.2512  
-## RealGDP.l1            0.0250205  0.0245384   1.020   0.3103  
-## MonetaryAggregate.l1  0.0058722  0.0059833   0.981   0.3287  
-## WorldOilPrice.l1      0.0018984  0.0009610   1.975   0.0509 .
-## trend                -0.0000517  0.0000427  -1.211   0.2288  
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.004729 on 101 degrees of freedom
-## Multiple R-Squared: 0.6481,  Adjusted R-squared: 0.6272 
-## F-statistic: 31.01 on 6 and 101 DF,  p-value: < 2.2e-16 
-## 
-## 
-## Estimation results for equation RealGDP: 
-## ======================================== 
-## RealGDP = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + WorldOilPrice.l1 + trend 
+## Estimation results for equation ExchangeRate: 
+## ============================================= 
+## ExchangeRate = MonetaryAggregate.l1 + InterestRate.l1 + RealGDP.l1 + Inflation.l1 + ExchangeRate.l1 + WorldOilPrice.l1 + MonetaryAggregate.l2 + InterestRate.l2 + RealGDP.l2 + Inflation.l2 + ExchangeRate.l2 + WorldOilPrice.l2 + MonetaryAggregate.l3 + InterestRate.l3 + RealGDP.l3 + Inflation.l3 + ExchangeRate.l3 + WorldOilPrice.l3 + trend 
 ## 
 ##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1      -7.851e-05  4.071e-04  -0.193  0.84747    
-## Inflation.l1          3.231e-03  1.317e-01   0.025  0.98047    
-## RealGDP.l1            1.058e+00  3.069e-02  34.466  < 2e-16 ***
-## MonetaryAggregate.l1  2.020e-02  7.482e-03   2.700  0.00813 ** 
-## WorldOilPrice.l1      5.143e-04  1.202e-03   0.428  0.66959    
-## trend                -3.780e-05  5.339e-05  -0.708  0.48067    
+## MonetaryAggregate.l1   1.996060   1.864598   1.071  0.28739    
+## InterestRate.l1        0.031558   0.070099   0.450  0.65370    
+## RealGDP.l1            -0.540009   3.620451  -0.149  0.88178    
+## Inflation.l1          -0.001199   0.031814  -0.038  0.97004    
+## ExchangeRate.l1        0.847479   0.101685   8.334 1.11e-12 ***
+## WorldOilPrice.l1       0.372465   0.179043   2.080  0.04047 *  
+## MonetaryAggregate.l2  -2.958531   3.046531  -0.971  0.33421    
+## InterestRate.l2       -0.003892   0.118018  -0.033  0.97377    
+## RealGDP.l2           -10.067770   5.514557  -1.826  0.07137 .  
+## Inflation.l2          -0.014022   0.044243  -0.317  0.75206    
+## ExchangeRate.l2        0.024395   0.131672   0.185  0.85345    
+## WorldOilPrice.l2      -0.440474   0.240603  -1.831  0.07061 .  
+## MonetaryAggregate.l3   0.948965   1.835553   0.517  0.60649    
+## InterestRate.l3       -0.040467   0.067010  -0.604  0.54750    
+## RealGDP.l3            10.486913   3.697665   2.836  0.00569 ** 
+## Inflation.l3           0.043474   0.031102   1.398  0.16578    
+## ExchangeRate.l3        0.036406   0.101664   0.358  0.72114    
+## WorldOilPrice.l3      -0.108599   0.181027  -0.600  0.55015    
+## trend                 -0.026148   0.016528  -1.582  0.11731    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## 
-## Residual standard error: 0.005914 on 101 degrees of freedom
-## Multiple R-Squared: 0.9795,  Adjusted R-squared: 0.9782 
-## F-statistic: 803.1 on 6 and 101 DF,  p-value: < 2.2e-16 
-## 
-## 
-## Estimation results for equation MonetaryAggregate: 
-## ================================================== 
-## MonetaryAggregate = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + WorldOilPrice.l1 + trend 
-## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1      -0.0037811  0.0009261  -4.083 8.92e-05 ***
-## Inflation.l1         -0.0027010  0.2995361  -0.009  0.99282    
-## RealGDP.l1           -0.2361234  0.0698082  -3.382  0.00102 ** 
-## MonetaryAggregate.l1  0.9549307  0.0170217  56.101  < 2e-16 ***
-## WorldOilPrice.l1      0.0061851  0.0027338   2.262  0.02581 *  
-## trend                -0.0001567  0.0001215  -1.290  0.20006    
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## 
-## Residual standard error: 0.01345 on 101 degrees of freedom
-## Multiple R-Squared: 0.9925,  Adjusted R-squared: 0.9921 
-## F-statistic:  2239 on 6 and 101 DF,  p-value: < 2.2e-16 
+## Residual standard error: 0.1732 on 86 degrees of freedom
+## Multiple R-Squared: 0.9997,  Adjusted R-squared: 0.9997 
+## F-statistic: 1.747e+04 on 19 and 86 DF,  p-value: < 2.2e-16 
 ## 
 ## 
 ## Estimation results for equation WorldOilPrice: 
 ## ============================================== 
-## WorldOilPrice = InterestRate.l1 + Inflation.l1 + RealGDP.l1 + MonetaryAggregate.l1 + WorldOilPrice.l1 + trend 
+## WorldOilPrice = MonetaryAggregate.l1 + InterestRate.l1 + RealGDP.l1 + Inflation.l1 + ExchangeRate.l1 + WorldOilPrice.l1 + MonetaryAggregate.l2 + InterestRate.l2 + RealGDP.l2 + Inflation.l2 + ExchangeRate.l2 + WorldOilPrice.l2 + MonetaryAggregate.l3 + InterestRate.l3 + RealGDP.l3 + Inflation.l3 + ExchangeRate.l3 + WorldOilPrice.l3 + trend 
 ## 
-##                        Estimate Std. Error t value Pr(>|t|)    
-## InterestRate.l1       0.0056734  0.0112418   0.505    0.615    
-## Inflation.l1          0.0050152  3.6358912   0.001    0.999    
-## RealGDP.l1            0.4780300  0.8473600   0.564    0.574    
-## MonetaryAggregate.l1 -0.0111786  0.2066164  -0.054    0.957    
-## WorldOilPrice.l1      0.9867409  0.0331837  29.736   <2e-16 ***
-## trend                 0.0006396  0.0014744   0.434    0.665    
+##                       Estimate Std. Error t value Pr(>|t|)    
+## MonetaryAggregate.l1 -0.336350   1.542221  -0.218   0.8279    
+## InterestRate.l1      -0.018076   0.057979  -0.312   0.7560    
+## RealGDP.l1            5.092957   2.994499   1.701   0.0926 .  
+## Inflation.l1         -0.046980   0.026314  -1.785   0.0777 .  
+## ExchangeRate.l1       0.073540   0.084104   0.874   0.3843    
+## WorldOilPrice.l1      1.304504   0.148087   8.809  1.2e-13 ***
+## MonetaryAggregate.l2  1.714025   2.519806   0.680   0.4982    
+## InterestRate.l2       0.067057   0.097613   0.687   0.4940    
+## RealGDP.l2           -6.823966   4.561127  -1.496   0.1383    
+## Inflation.l2          0.028944   0.036594   0.791   0.4312    
+## ExchangeRate.l2      -0.070110   0.108907  -0.644   0.5214    
+## WorldOilPrice.l2     -0.441991   0.199004  -2.221   0.0290 *  
+## MonetaryAggregate.l3 -1.577365   1.518198  -1.039   0.3017    
+## InterestRate.l3      -0.045944   0.055424  -0.829   0.4094    
+## RealGDP.l3            2.140717   3.058363   0.700   0.4858    
+## Inflation.l3          0.004053   0.025725   0.158   0.8752    
+## ExchangeRate.l3       0.022652   0.084087   0.269   0.7883    
+## WorldOilPrice.l3      0.149508   0.149728   0.999   0.3208    
+## trend                 0.013013   0.013671   0.952   0.3438    
 ## ---
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 ## 
 ## 
-## Residual standard error: 0.1633 on 101 degrees of freedom
-## Multiple R-Squared: 0.9981,  Adjusted R-squared: 0.998 
-## F-statistic:  9068 on 6 and 101 DF,  p-value: < 2.2e-16 
+## Residual standard error: 0.1433 on 86 degrees of freedom
+## Multiple R-Squared: 0.9988,  Adjusted R-squared: 0.9985 
+## F-statistic:  3675 on 19 and 86 DF,  p-value: < 2.2e-16 
 ## 
 ## 
 ## 
 ## Covariance matrix of residuals:
-##                   InterestRate  Inflation    RealGDP MonetaryAggregate
-## InterestRate         0.1412468  4.580e-04  7.844e-04        -2.226e-03
-## Inflation            0.0004580  2.237e-05  5.270e-06        -3.305e-05
-## RealGDP              0.0007844  5.270e-06  3.494e-05        -2.791e-05
-## MonetaryAggregate   -0.0022263 -3.305e-05 -2.791e-05         1.810e-04
-## WorldOilPrice        0.0224289  6.011e-04  2.493e-04        -1.042e-03
-##                   WorldOilPrice
-## InterestRate          0.0224289
-## Inflation             0.0006011
-## RealGDP               0.0002493
-## MonetaryAggregate    -0.0010422
-## WorldOilPrice         0.0266582
+##                   MonetaryAggregate InterestRate    RealGDP  Inflation
+## MonetaryAggregate         1.395e-04   -0.0012598 -2.245e-05 -0.0053184
+## InterestRate             -1.260e-03    0.0821286  4.932e-04  0.0632735
+## RealGDP                  -2.245e-05    0.0004932  2.860e-05  0.0008689
+## Inflation                -5.318e-03    0.0632735  8.689e-04  0.7668462
+## ExchangeRate             -9.553e-05   -0.0046854  8.183e-05 -0.0005647
+## WorldOilPrice            -8.396e-04    0.0128679  1.740e-04  0.0945846
+##                   ExchangeRate WorldOilPrice
+## MonetaryAggregate   -9.553e-05    -0.0008396
+## InterestRate        -4.685e-03     0.0128679
+## RealGDP              8.183e-05     0.0001740
+## Inflation           -5.647e-04     0.0945846
+## ExchangeRate         3.001e-02     0.0003972
+## WorldOilPrice        3.972e-04     0.0205317
 ## 
 ## Correlation matrix of residuals:
-##                   InterestRate Inflation RealGDP MonetaryAggregate
-## InterestRate            1.0000    0.2577  0.3531           -0.4403
-## Inflation               0.2577    1.0000  0.1885           -0.5194
-## RealGDP                 0.3531    0.1885  1.0000           -0.3509
-## MonetaryAggregate      -0.4403   -0.5194 -0.3509            1.0000
-## WorldOilPrice           0.3655    0.7784  0.2583           -0.4744
-##                   WorldOilPrice
-## InterestRate             0.3655
-## Inflation                0.7784
-## RealGDP                  0.2583
-## MonetaryAggregate       -0.4744
-## WorldOilPrice            1.0000
+##                   MonetaryAggregate InterestRate  RealGDP Inflation
+## MonetaryAggregate           1.00000     -0.37227 -0.35555 -0.514295
+## InterestRate               -0.37227      1.00000  0.32180  0.252128
+## RealGDP                    -0.35555      0.32180  1.00000  0.185535
+## Inflation                  -0.51430      0.25213  0.18554  1.000000
+## ExchangeRate               -0.04669     -0.09437  0.08833 -0.003723
+## WorldOilPrice              -0.49619      0.31336  0.22707  0.753796
+##                   ExchangeRate WorldOilPrice
+## MonetaryAggregate    -0.046694       -0.4962
+## InterestRate         -0.094374        0.3134
+## RealGDP               0.088329        0.2271
+## Inflation            -0.003723        0.7538
+## ExchangeRate          1.000000        0.0160
+## WorldOilPrice         0.016000        1.0000
 \end{verbatim}
 
 \hypertarget{step-5-acf-pacf-or-aic-criteria-to-choose-lags}{%
@@ -1317,15 +1131,131 @@ inclusion\ldots{}}\label{step-9-test-model-specification-using-congruency-parsim
 \section*{Appendix}\label{appendix}}
 \addcontentsline{toc}{section}{Appendix}
 
-\hypertarget{regression-1}{%
-\section*{Regression 1}\label{regression-1}}
-\addcontentsline{toc}{section}{Regression 1}
+\hypertarget{johansen-tests}{%
+\section*{Johansen Tests}\label{johansen-tests}}
+\addcontentsline{toc}{section}{Johansen Tests}
 
-\begin{figure}
-\centering
-\includegraphics{/Users/Harriet/Documents/Economic History/ESSAY/Texevier_History_Essay/HistoryEssay/data/Reg1.jpg}
-\caption{Alt Text}
-\end{figure}
+\begin{verbatim}
+## 
+## ###################### 
+## # Johansen-Procedure # 
+## ###################### 
+## 
+## Test type: maximal eigenvalue statistic (lambda max) , with linear trend in cointegration 
+## 
+## Eigenvalues (lambda):
+## [1]  3.625609e-01  2.963807e-01  2.076486e-01  1.541662e-01  9.800368e-02
+## [6]  3.747924e-02 -8.856705e-18
+## 
+## Values of teststatistic and critical values of test:
+## 
+##           test 10pct  5pct  1pct
+## r <= 5 |  4.05 10.49 12.25 16.26
+## r <= 4 | 10.93 16.85 18.96 23.65
+## r <= 3 | 17.75 23.11 25.54 30.34
+## r <= 2 | 24.67 29.12 31.46 36.65
+## r <= 1 | 37.26 34.75 37.52 42.36
+## r = 0  | 47.73 40.91 43.97 49.51
+## 
+## Eigenvectors, normalised to first column:
+## (These are the cointegration relations)
+## 
+##                      MonetaryAggregate.l2 InterestRate.l2  RealGDP.l2
+## MonetaryAggregate.l2           1.00000000       1.0000000  1.00000000
+## InterestRate.l2                0.02090796      -0.1815780 -0.05463788
+## RealGDP.l2                     5.79168509      11.4507610 -1.41461126
+## Inflation.l2                   0.01263811       0.1391621 -0.08991552
+## ExchangeRate.l2                0.20637462       0.6731770 -0.29247756
+## WorldOilPrice.l2               0.08300303      -0.6733798  0.98679887
+## trend.l2                      -0.06055900      -0.2378757  0.08962033
+##                      Inflation.l2 ExchangeRate.l2 WorldOilPrice.l2     trend.l2
+## MonetaryAggregate.l2    1.0000000      1.00000000      1.000000000  1.000000000
+## InterestRate.l2        -0.0107365     -0.03832031      0.096334240  0.081610505
+## RealGDP.l2              3.9793206      1.65375391     -9.343016135  0.346116761
+## Inflation.l2            0.1079603     -0.03067633      0.060520904 -0.009945965
+## ExchangeRate.l2        -0.1427203     -0.18869668     -0.011991905 -0.041187182
+## WorldOilPrice.l2       -0.3129209      0.13160811     -0.210068744 -0.374636824
+## trend.l2               -0.1405501      0.01532017     -0.006572137  0.023968868
+## 
+## Weights W:
+## (This is the loading matrix)
+## 
+##                     MonetaryAggregate.l2 InterestRate.l2   RealGDP.l2
+## MonetaryAggregate.d         -0.034858708     0.016037808  0.007271973
+## InterestRate.d              -0.338396750     0.177174677  0.212651360
+## RealGDP.d                   -0.004020157     0.001844628 -0.003167251
+## Inflation.d                  0.833537291    -1.144421528  0.771708313
+## ExchangeRate.d              -1.036106898    -0.197592759 -0.042723775
+## WorldOilPrice.d             -0.108557713    -0.101243881 -0.055028948
+##                     Inflation.l2 ExchangeRate.l2 WorldOilPrice.l2      trend.l2
+## MonetaryAggregate.d  0.001526585     -0.02120366     0.0012239580  1.979170e-14
+## InterestRate.d       0.022410843      0.59072985    -0.0561215932 -1.634378e-12
+## RealGDP.d           -0.008062553      0.01010690     0.0006196523  8.444640e-14
+## Inflation.d         -1.289652532      0.40854415    -0.1373710103  5.817831e-11
+## ExchangeRate.d       0.081145460      0.04535476     0.0068786772  2.184548e-11
+## WorldOilPrice.d     -0.201465643      0.03207400    -0.0448162206  7.370779e-12
+\end{verbatim}
+
+\begin{verbatim}
+## 
+## ###################### 
+## # Johansen-Procedure # 
+## ###################### 
+## 
+## Test type: trace statistic , with linear trend in cointegration 
+## 
+## Eigenvalues (lambda):
+## [1]  3.625609e-01  2.963807e-01  2.076486e-01  1.541662e-01  9.800368e-02
+## [6]  3.747924e-02 -8.856705e-18
+## 
+## Values of teststatistic and critical values of test:
+## 
+##            test  10pct   5pct   1pct
+## r <= 5 |   4.05  10.49  12.25  16.26
+## r <= 4 |  14.98  22.76  25.32  30.45
+## r <= 3 |  32.73  39.06  42.44  48.45
+## r <= 2 |  57.40  59.14  62.99  70.05
+## r <= 1 |  94.66  83.20  87.31  96.58
+## r = 0  | 142.39 110.42 114.90 124.75
+## 
+## Eigenvectors, normalised to first column:
+## (These are the cointegration relations)
+## 
+##                      MonetaryAggregate.l2 InterestRate.l2  RealGDP.l2
+## MonetaryAggregate.l2           1.00000000       1.0000000  1.00000000
+## InterestRate.l2                0.02090796      -0.1815780 -0.05463788
+## RealGDP.l2                     5.79168509      11.4507610 -1.41461126
+## Inflation.l2                   0.01263811       0.1391621 -0.08991552
+## ExchangeRate.l2                0.20637462       0.6731770 -0.29247756
+## WorldOilPrice.l2               0.08300303      -0.6733798  0.98679887
+## trend.l2                      -0.06055900      -0.2378757  0.08962033
+##                      Inflation.l2 ExchangeRate.l2 WorldOilPrice.l2     trend.l2
+## MonetaryAggregate.l2    1.0000000      1.00000000      1.000000000  1.000000000
+## InterestRate.l2        -0.0107365     -0.03832031      0.096334240  0.081610505
+## RealGDP.l2              3.9793206      1.65375391     -9.343016135  0.346116761
+## Inflation.l2            0.1079603     -0.03067633      0.060520904 -0.009945965
+## ExchangeRate.l2        -0.1427203     -0.18869668     -0.011991905 -0.041187182
+## WorldOilPrice.l2       -0.3129209      0.13160811     -0.210068744 -0.374636824
+## trend.l2               -0.1405501      0.01532017     -0.006572137  0.023968868
+## 
+## Weights W:
+## (This is the loading matrix)
+## 
+##                     MonetaryAggregate.l2 InterestRate.l2   RealGDP.l2
+## MonetaryAggregate.d         -0.034858708     0.016037808  0.007271973
+## InterestRate.d              -0.338396750     0.177174677  0.212651360
+## RealGDP.d                   -0.004020157     0.001844628 -0.003167251
+## Inflation.d                  0.833537291    -1.144421528  0.771708313
+## ExchangeRate.d              -1.036106898    -0.197592759 -0.042723775
+## WorldOilPrice.d             -0.108557713    -0.101243881 -0.055028948
+##                     Inflation.l2 ExchangeRate.l2 WorldOilPrice.l2      trend.l2
+## MonetaryAggregate.d  0.001526585     -0.02120366     0.0012239580  1.979170e-14
+## InterestRate.d       0.022410843      0.59072985    -0.0561215932 -1.634378e-12
+## RealGDP.d           -0.008062553      0.01010690     0.0006196523  8.444640e-14
+## Inflation.d         -1.289652532      0.40854415    -0.1373710103  5.817831e-11
+## ExchangeRate.d       0.081145460      0.04535476     0.0068786772  2.184548e-11
+## WorldOilPrice.d     -0.201465643      0.03207400    -0.0448162206  7.370779e-12
+\end{verbatim}
 
 \bibliography{Tex/ref}
 
