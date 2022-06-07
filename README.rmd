@@ -127,6 +127,8 @@ library(grid)
 library(ggplot2)
 library(lattice)
 library(tsDyn)
+library(ggplotify)
+library(grid)
 wordcountaddin::word_count("README.Rmd")
 
 ExchangeRate <- read_csv("data/ExchangeRate.csv")
@@ -256,10 +258,6 @@ The methodology that I applied in order to replicate the study, was to first tra
 Resultant time series variables were as follows:
 
 ```{r, echo = FALSE}
-autoplot <- autoplot(cbind(interestrate, inflation, realGDP, exchangerate, worldoilprice, monetaryaggregate), label=NULL)
-autoplot
-```
-```{r, echo = FALSE}
 g<- ggplot() +
     geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate)) +
     xlab("") +
@@ -312,36 +310,72 @@ m<- ggplot() +
 
 grid.arrange(g, h, i, k, l, m)
 ```
-We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. We set the lag max to 4. The VAR model was found to have 4 when we used the AIC lag selection criteria and accounted for a time trend, as is done in the paper. We order our VAR system in the same way as the short run restrictions matrix in the paper: monetary aggregate, interest rate, real GDP, inflation, exchange rate and world oil price.
+We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. We set the lag max to 4. The VAR model was found to have 4 when we used the AIC lag selection criteria and accounted for a time trend, as is done in the paper. We order our VAR system in the same way as the short run restrictions matrix in the paper: monetary aggregate, interest rate, real GDP, inflation, exchange rate and world oil price. Lag should be 2 according to the paper, but we find AIC suggests 4. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008. Therefore, it is likely the difference in the optimal lags between this replication and the Cologni & Manera paper arises from the different time periods used, as Cologni & Manera's time period ends before the financial crisis.
+
+For a VAR model, we use the lag of 4, but for the VECM model we use the lag of 3. This is because a VECM model has a difference term.
 
 ```{r, echo = FALSE}
-groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
-colnames(groupedVAR) <- cbind("MonetaryAggregate", "InterestRate", "RealGDP", "Inflation", "ExchangeRate", "WorldOilPrice")
+#groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
+#colnames(groupedVAR) <- cbind("MonetaryAggregate", "InterestRate", "RealGDP", "Inflation", "ExchangeRate", "WorldOilPrice")
+#ordered according to B matrix
 
 cointanalysisVAR <- cbind(realGDP, worldoilprice, interestrate, inflation, exchangerate, monetaryaggregate)
-#according to table 3
+#ordered according to table 3
 ```
 ```{r, echo = FALSE}
-lagselect <- VARselect(groupedVAR, lag.max=4, type="trend")
+#lagselect <- VARselect(groupedVAR, lag.max=4, type="trend")
 #lagselect$selection
-
-#paper uses AIC criteria
 ```
-
-Lag should be 2 according to the paper, but we find AIC suggests 4. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008. Therefore, it is likely the difference in the optimal lags between this replication and the Cologni & Manera paper arises from the different time periods used, as Cologni & Manera's time period ends before the financial crisis.
 
 Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that there is likely one cointegrating relationship at the 5% confidence interval where our critical value is smaller than the test statistic, however, only marginally (37.26 estimated value < 37.52 critical value). For the trace test, we find that there is at least two cointegrating relationships. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal, we conclude from our estimates that there is likely two cointegrating relationships. This is a divergence from the result as is found for the US in Cologni & Manera.
 
-# Cointegration analysis of the restricted system
-
-# Set up VECM
+Cointegration analysis of the restricted system
 
 We obtain the cointegrating vectors from the Johansen test and construct a matrix is which each column is a cointegrating vector. Then we multiply the VAR system by the cointegrating vector matrix to obtain the error correction terms.
  
 ```{r, echo = FALSE}
-VECModelNew <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
-VARModelNew <- vec2var(VECModelNew, r=2)
+Johansentestcointanalysis <- ca.jo(cointanalysisVAR, type="eigen", K=2, ecdet="trend", spec="longrun")
 
+VECModelNew <- VECM(cointanalysisVAR,lag=3, r=2, estim="ML")
+summary(VECModelNew)
+
+VARModelNew <- VAR(cointanalysisVAR, p=2, type = "trend", lag.max = 4)
+summary(VARModelNew)
+```
+
+Comparison of cointegrating vectors
+```{r}
+cointegratingvector1 <- c(1, 0, -0.1704922, -0.01710960, 0.6161332, -0.3747751)
+cointegratingvector2 <- c(0,1, 1.6056301, 0.06991751, -5.4962156, 6.5786487)
+papercointegratingvector<- c(1, 0.16, 0, -26.019, 0.218, 0)
+
+cointegratinganalysis <- rbind(papercointegratingvector, cointegratingvector1, cointegratingvector2)
+#realGDP, worldoilprice, interestrate, inflation, exchangerate, monetaryaggregate
+```
+
+```{r table2, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl <- "
+|                       | Real GDP | World Oil Price | Interest Rate | Inflation | Exchange Rate | Monetary Aggregate |
+|-----------------------|:--------:|:---------------:|:-------------:|:---------:|:-------------:|:------------------:|
+|Cologni & Manera       | 1        | 0.16            | 0             | -26.019   | 0.218         | 0                  |
+|Cointegrating vector 1 | 1        | 0               | -0.170        | -0.017    | 0.616         | -0.375             |
+|Cointegrating vector 2 | 0        | 1               | 1.606         | 0.0699    | -5.496        | 6.579              |
+"
+cat(tabl)
+```
+
+
+```{r, echo = FALSE}
+VECModel <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+VARModel <- vec2var(VECModel, r=2)
+```
+
+```{r}
+
+```
+
+
+```{r, echo = FALSE}
 M_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "MonetaryAggregate",
              n.ahead = 8, ortho = FALSE, runs = 1000)
 IR_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "InterestRate",
@@ -358,33 +392,30 @@ G <- plot(GDP_IRF)
 In <- plot (I_IRF)
 E <- plot(ER_IRF)
 
-library('ggplotify')
-library(grid)
-
 #grid.arrange(M, I, G, In, E)
 ```
 
 
 ```{r, echo = FALSE}
-jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun")
-cointegrating_vectors <- jotestEigen_US@V
+#jotestEigen_US <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun")
+#cointegrating_vectors <- jotestEigen_US@V
 
-jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
+#jotestTrace_US <- ca.jo(groupedVAR, type="trace", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
 # to get loading coeffs
-cointegrating_loadingcoeffs <- jotestEigen_US@W
+#cointegrating_loadingcoeffs <- jotestEigen_US@W
 
 #remove the trend line and titles from the matrices so that it is 6x6
-cointegrating_vectors_ <- cointegrating_vectors[-7,-7]
-cointegrating_loadingcoeffs_ <- cointegrating_loadingcoeffs[-7,-7]
+#cointegrating_vectors_ <- cointegrating_vectors[-7,-7]
+#cointegrating_loadingcoeffs_ <- cointegrating_loadingcoeffs[-7,-7]
     
-colnames(cointegrating_vectors_)<-NULL
-rownames(cointegrating_vectors_) <- NULL
+#colnames(cointegrating_vectors_)<-NULL
+#rownames(cointegrating_vectors_) <- NULL
 
-colnames(cointegrating_loadingcoeffs_)<-NULL
-rownames(cointegrating_loadingcoeffs_) <- NULL
+#colnames(cointegrating_loadingcoeffs_)<-NULL
+#rownames(cointegrating_loadingcoeffs_) <- NULL
 
 # to get cointegrating matrix pi we need to multiply the cointegrating vector matrix B transposed by the cointegrating loading coefficients matrix alpha
-cointegrating_matrix <- t(cointegrating_vectors_)*cointegrating_loadingcoeffs_
+#cointegrating_matrix <- t(cointegrating_vectors_)*cointegrating_loadingcoeffs_
 ```
 
 Cointegrating vectors visually??
@@ -404,6 +435,7 @@ Brow5 <- c(0,0,0,0,1,1)
 Brow6 <- c(0,0,0,0,0,1)
 #m, r, y, p, e, o
 
+
 B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
 B_Matrix
 
@@ -418,7 +450,7 @@ rownames(B_Matrix) <- NULL
 
 
 ```{r, echo = FALSE}
-VECModel <- VECM(cointanalysisVAR, lag=4, r=2, estim="ML")
+VECModel <- VECM(cointanalysisVAR, lag=3, r=2, estim="ML")
 summary(VECModel)
 ```
 #Find VECM residuals
@@ -427,7 +459,7 @@ ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
 ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
 
 #plot residuals
-residuals(VARModelNew)
+residuals(VECModel)
 ```
 
 
