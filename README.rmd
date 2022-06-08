@@ -349,10 +349,8 @@ We obtain the cointegrating vectors from the Johansen test and construct a matri
 Johansentestcointanalysis <- ca.jo(cointanalysisVAR, type="eigen", K=2, ecdet="trend", spec="longrun")
 
 VECModelNew <- VECM(cointanalysisVAR,lag=3, r=2, estim="ML")
-summary(VECModelNew)
 
 VARModelNew <- VAR(cointanalysisVAR, p=2, type = "trend", lag.max = 4)
-summary(VARModelNew)
 ```
 
 # Restricted VAR system
@@ -376,7 +374,6 @@ Brow6 <- c(NA,NA,NA,NA,NA,1)
 
 
 B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
-B_Matrix
 
 colnames(B_Matrix)<-NULL
 rownames(B_Matrix) <- NULL
@@ -388,9 +385,7 @@ covariancematrix*B_Matrix*t(B_Matrix)
 We then obtain a single entry for each row, which we can create our short-run error vector from.
 ```{r}
 ErrorVector_U <- c(0.0001328802, 0.07138726, 2.804883e-05, 0.753182, 0.01135468,  0.02108534)
-class(ErrorVector_U)
 ```
-
 
 Comparison of cointegrating vectors
 ```{r, echo = FALSE}
@@ -420,22 +415,23 @@ VARModel <- vec2var(VECModel, r=2)
 ```
 
 ```{r}
-summary(VARModel)
+#summary(VARModel)
 ```
 
 We need to find the SR error, which is equal to the LR error (ECT in the VECM) multiplied by the SR restrictions (B matrix)
 ```{r, echo=FALSE}
 
-ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
-ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
+#ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
+#ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
 
-ECT1*B_Matrix
-ECT2*B_Matrix
+#ECT1*B_Matrix
+#ECT2*B_Matrix
 
 #GET COVARIANCE OF ECTS???
 
-LogLikelihood <- logLik(VECModel)
-LogLikelihoodVAR <- logLik(VARModel)
+#LogLikelihood <- logLik(VECModel)
+#LogLikelihoodVAR <- logLik(VARModel)
+#?logLik
 ```
 
 
@@ -565,7 +561,7 @@ Alternatively, exclude exchange rates as the paper unusually included these. How
 
 # Appendix {-}
 
-# Johansen Tests {-}
+
 ```{r, echo = FALSE}
 #summary(jotestEigen_US)
 ```

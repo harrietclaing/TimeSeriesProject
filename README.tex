@@ -224,11 +224,50 @@
 \section{\texorpdfstring{Introduction
 \label{Introduction}}{Introduction }}\label{introduction}}
 
-To replicate the study by Cologni \& Manera to find the economic impact
-of a rise in oil prices.
+To replicate the study by Cologni \& Manera, the sam methodology and
+structural cointegrated VAR model was used. This paper investigates
+whether the findings from Cologni \& Manera hold after 2003 in the
+United States, as the economic impact of a rise in oil prices during the
+period 1990 to 2017 is analysed.
+
+Did the response of central banks reduce the impact of a sudden oil
+price shock?
+
+This replication paper finds that\ldots is the optimal model for this
+time period and \ldots{}
 
 \hypertarget{background}{%
 \section{Background}\label{background}}
+
+Many economists regard increases in the oil price as a major cause of
+asymmetries in the business cycle. This issue became especially
+important to economists following the world oil market highs in the
+early 2000s which could lead to economic slowdowns in developed
+countries. The hypothesised asymmetric relationship between oil prices
+and economic activity was first hypothesised after the oil price
+collapse of 1986 which did not lead to an economic boom, which is what
+theoretically should have been the case following the view that there
+existed an inverse relationship between oil prices and the economy.
+
+However, the channels through which an increase in the oil price impacts
+economic variables remains unclear. There are many possible theoretical
+explanations; some of which link to the effect of decreasing firms'
+profits which may reduce capital spending and consumers' expectations
+which causes them to consume more today, others link to the income
+transfer between oil-importing countries and oil exporting countries
+that shifts, and others link an increase in oil prices to the increases
+in prices of related goods, thereby increasing inflation.
+
+There is also, importantly, effects on economic variables that flow
+indirectly from an increase in oil prices. Namely, that the monetary
+authority responds to increase employment and ensure price stability
+once an increase in oil prices threatens these two objectives. For
+example, in the US, the Federal bank \ldots{} The role of monetary
+policy may cause delayed impacts of an increase in oil prices on
+economic variables.
+
+Many studies have found a negative impact on aggregate economic activity
+as a result of an increase in the oil price (Hamilton, 1983).
 
 \hypertarget{replication-methodology-results}{%
 \section{Replication methodology \&
@@ -700,6 +739,53 @@ error correction terms.
 ## monetaryaggregate           1.00000
 \end{verbatim}
 
+\hypertarget{restricted-var-system}{%
+\section{Restricted VAR system}\label{restricted-var-system}}
+
+According to the paper, \(u_t=E_tB\) which means that we can recover the
+short run error vector \(u_t\) from the long-run error we obtain from
+our VAR system. We obtain the covariance matrix of residuals from our
+VAR system and then mutiply that by our B matrix of short-run
+restrictions and the transpose of the B matrix, because the paper states
+that these are equivalent.
+
+Let us set up the imposed restrictions in a matrix, known as B matrix in
+the paper.
+
+\begin{verbatim}
+##       [,1] [,2] [,3] [,4] [,5] [,6]
+## Brow1    1    1   NA    1   NA   NA
+## Brow2   NA    1    1    1    1    1
+## Brow3   NA   NA    1    1    1    1
+## Brow4   NA   NA   NA    1    1    1
+## Brow5   NA   NA   NA   NA    1    1
+## Brow6   NA   NA   NA   NA   NA    1
+\end{verbatim}
+
+\begin{verbatim}
+##                   MonetaryAggregate InterestRate      RealGDP Inflation
+## MonetaryAggregate      0.0001328802           NA           NA        NA
+## InterestRate                     NA   0.07138726           NA        NA
+## RealGDP                          NA           NA 2.804883e-05        NA
+## Inflation                        NA           NA           NA  0.753182
+## ExchangeRate                     NA           NA           NA        NA
+## WorldOilPrice                    NA           NA           NA        NA
+##                   ExchangeRate WorldOilPrice
+## MonetaryAggregate           NA            NA
+## InterestRate                NA            NA
+## RealGDP                     NA            NA
+## Inflation                   NA            NA
+## ExchangeRate        0.01135468            NA
+## WorldOilPrice               NA    0.02108534
+\end{verbatim}
+
+We then obtain a single entry for each row, which we can create our
+short-run error vector from.
+
+\begin{verbatim}
+## [1] "numeric"
+\end{verbatim}
+
 Comparison of cointegrating vectors
 
 \begin{longtable}[]{@{}
@@ -736,30 +822,17 @@ Cointegrating vector 2 & 0 & 1 & 1.606 & 0.0699 & -5.496 & 6.579 \\
 We need to find the SR error, which is equal to the LR error (ECT in the
 VECM) multiplied by the SR restrictions (B matrix)
 
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-8-1} \end{center}
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-13-1} \end{center}
 
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-8-2} \end{center}
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-13-2} \end{center}
 
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-8-3} \end{center}
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-13-3} \end{center}
 
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-8-4} \end{center}
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-13-4} \end{center}
 
-\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-8-5} \end{center}
+\begin{center}\includegraphics{README_files/figure-latex/unnamed-chunk-13-5} \end{center}
 
 Cointegrating vectors visually??
-
-Let us set up the imposed restrictions in a matrix, known as B matrix in
-the paper.
-
-\begin{verbatim}
-##       [,1] [,2] [,3] [,4] [,5] [,6]
-## Brow1    1    1    0    1    0    0
-## Brow2    0    1    1    1    1    1
-## Brow3    0    0    1    1    1    1
-## Brow4    0    0    0    1    1    1
-## Brow5    0    0    0    0    1    1
-## Brow6    0    0    0    0    0    1
-\end{verbatim}
 
 \ldots Let us see if we can impose the restrictions contained in the B
 matrix onto the cointegrating vectors contained in the Et matrix.
@@ -861,26 +934,6 @@ matrix onto the cointegrating vectors contained in the Et matrix.
 
 \#Find VECM residuals
 
-\begin{verbatim}
-##         [,1]    [,2]    [,3]    [,4]    [,5]    [,6]
-## [1,] -0.0025 -0.0025  0.0000 -0.0025  0.0000  0.0000
-## [2,]  0.0000 -1.4757 -1.4757 -1.4757 -1.4757 -1.4757
-## [3,]  0.0000  0.0000 -1.2205 -1.2205 -1.2205 -1.2205
-## [4,]  0.0000  0.0000  0.0000 -1.8461 -1.8461 -1.8461
-## [5,]  0.0000  0.0000  0.0000  0.0000 -1.9858 -1.9858
-## [6,]  0.0000  0.0000  0.0000  0.0000  0.0000 -0.0757
-\end{verbatim}
-
-\begin{verbatim}
-##        [,1]    [,2]    [,3]    [,4]    [,5]    [,6]
-## [1,] -2e-04 -0.0002  0.0000 -0.0002  0.0000  0.0000
-## [2,]  0e+00 -0.1583 -0.1583 -0.1583 -0.1583 -0.1583
-## [3,]  0e+00  0.0000 -0.1277 -0.1277 -0.1277 -0.1277
-## [4,]  0e+00  0.0000  0.0000 -0.0425 -0.0425 -0.0425
-## [5,]  0e+00  0.0000  0.0000  0.0000 -0.1907 -0.1907
-## [6,]  0e+00  0.0000  0.0000  0.0000  0.0000 -0.0145
-\end{verbatim}
-
 We want to compare our estimates to the one in Table 3.
 
 Maybe instead it is the VAR system \ldots missing constant and trend
@@ -902,6 +955,10 @@ effects}\label{step-8-find-vecm-model-by-imposing-sr-contemporaneous-effects}}
 \section{Step 9: Test model specification using congruency, parsimony,
 lag
 inclusion\ldots{}}\label{step-9-test-model-specification-using-congruency-parsimony-lag-inclusion}}
+
+Alternatively, exclude exchange rates as the paper unusually included
+these. However, in our models we could not find exchange rates to be
+significant.
 
 \hypertarget{appendix}{%
 \section*{Appendix}\label{appendix}}
