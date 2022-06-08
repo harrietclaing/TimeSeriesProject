@@ -235,9 +235,22 @@ monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAgg
 
 # Introduction \label{Introduction}
 
-To replicate the study by Cologni & Manera to find the economic impact of a rise in oil prices.
+To replicate the study by Cologni & Manera, the sam  methodology and structural cointegrated VAR model was used. This paper investigates whether the findings from Cologni & Manera hold after 2003 in the United States, as the economic impact of a rise in oil prices during the period 1990 to 2017 is analysed. 
+
+Did the response of central banks reduce the impact of a sudden oil price shock?
+
+This replication paper finds that...is the optimal model for this time period and ...
 
 # Background
+
+Many economists regard increases in the oil price as a major cause of asymmetries in the business cycle. This issue became especially important to economists following the world oil market highs in the early 2000s which could lead to economic slowdowns in developed countries. The hypothesised asymmetric relationship between oil prices and economic activity was first hypothesised after the oil price collapse of 1986 which did not lead to an economic boom, which is what theoretically should have been the case following the view that there existed an inverse relationship between oil prices and the economy.
+
+However, the channels through which an increase in the oil price impacts economic variables remains unclear. There are many possible theoretical explanations; some of which link to the effect of decreasing firms' profits which may reduce capital spending and consumers' expectations which causes them to consume more today, others link to the income transfer between oil-importing countries and oil exporting countries that shifts, and others link an increase in oil prices to the increases in prices of related goods, thereby increasing inflation.
+
+There is also, importantly, effects on economic variables that flow indirectly from an increase in oil prices. Namely, that the monetary authority responds to increase employment and ensure price stability once an increase in oil prices threatens these two objectives. For example, in the US, the Federal bank ...
+The role of monetary policy may cause delayed impacts of an increase in oil prices on economic variables.
+
+Many studies have found a negative impact on aggregate economic activity as a result of an increase in the oil price (Hamilton, 1983). 
 
 # Replication methodology & results
 
@@ -315,8 +328,8 @@ We then construct our VAR model by creating a matrix which includes the time ser
 For a VAR model, we use the lag of 4, but for the VECM model we use the lag of 3. This is because a VECM model has a difference term.
 
 ```{r, echo = FALSE}
-#groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
-#colnames(groupedVAR) <- cbind("MonetaryAggregate", "InterestRate", "RealGDP", "Inflation", "ExchangeRate", "WorldOilPrice")
+groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
+colnames(groupedVAR) <- cbind("MonetaryAggregate", "InterestRate", "RealGDP", "Inflation", "ExchangeRate", "WorldOilPrice")
 #ordered according to B matrix
 
 cointanalysisVAR <- cbind(realGDP, worldoilprice, interestrate, inflation, exchangerate, monetaryaggregate)
@@ -341,6 +354,15 @@ summary(VECModelNew)
 
 VARModelNew <- VAR(cointanalysisVAR, p=2, type = "trend", lag.max = 4)
 summary(VARModelNew)
+```
+
+# Restricted VAR system
+
+We obtain the covariance matrix of residuals from our VAR system and then mutliply that by our B matrix of short-run restrictions.
+```{r, echo = FALSE}
+VARModelRestricted <- VAR(groupedVAR, p=2, type = "trend", lag.max = 4)
+covariancematrix <- summary(VARModelRestricted)$covres
+covariancematrix*B_Matrix
 ```
 
 Comparison of cointegrating vectors
@@ -369,22 +391,33 @@ cat(tabl)
 VECModel <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
 VARModel <- vec2var(VECModel, r=2)
 ```
+We need to find the SR error, which is equal to the LR error (ECT in the VECM) multiplied by the SR restrictions (B matrix)
+```{r, echo=FALSE}
 
-```{r}
+ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
+ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
 
+ECT1*B_Matrix
+ECT2*B_Matrix
+
+#GET COVARIANCE OF ECTS???
+
+LogLikelihood <- logLik(VECModel)
+LogLikelihoodVAR <- logLik(VARModel)
 ```
 
 
+
 ```{r, echo = FALSE}
-M_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "MonetaryAggregate",
+M_IRF <- irf(VARModel, impulse = "WorldOilPrice", response = "MonetaryAggregate",
              n.ahead = 8, ortho = FALSE, runs = 1000)
-IR_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "InterestRate",
+IR_IRF <- irf(VARModel, impulse = "WorldOilPrice", response = "InterestRate",
              n.ahead = 8, ortho = FALSE, runs = 1000)
-GDP_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "RealGDP",
+GDP_IRF <- irf(VARModel, impulse = "WorldOilPrice", response = "RealGDP",
              n.ahead = 8, ortho = FALSE, runs = 1000)
-I_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "Inflation",
+I_IRF <- irf(VARModel, impulse = "WorldOilPrice", response = "Inflation",
              n.ahead = 8, ortho = FALSE, runs = 1000)
-ER_IRF <- irf(VARModelNew, impulse = "WorldOilPrice", response = "ExchangeRate",
+ER_IRF <- irf(VARModel, impulse = "WorldOilPrice", response = "ExchangeRate",
              n.ahead = 8, ortho = FALSE, runs = 1000)
 M <- plot(M_IRF)
 I <- plot(IR_IRF)
@@ -420,19 +453,20 @@ E <- plot(ER_IRF)
 
 Cointegrating vectors visually??
 ```{r, echo=FALSE}
-plot(cointegrating_vectors)
+#plot(cointegrating_vectors)
 ```
+
 
 
 Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
 ```{r, echo = FALSE}
 
-Brow1 <- c(1,1,0,1,0,0)
-Brow2 <- c(0,1,1,1,1,1)
-Brow3 <- c(0,0,1,1,1,1)
-Brow4 <- c(0,0,0,1,1,1)
-Brow5 <- c(0,0,0,0,1,1)
-Brow6 <- c(0,0,0,0,0,1)
+Brow1 <- c(1,1,NA,1,NA,NA)
+Brow2 <- c(NA,1,1,1,1,1)
+Brow3 <- c(NA,NA,1,1,1,1)
+Brow4 <- c(NA,NA,NA,1,1,1)
+Brow5 <- c(NA,NA,NA,NA,1,1)
+Brow6 <- c(NA,NA,NA,NA,NA,1)
 #m, r, y, p, e, o
 
 
@@ -454,13 +488,7 @@ VECModel <- VECM(cointanalysisVAR, lag=3, r=2, estim="ML")
 summary(VECModel)
 ```
 #Find VECM residuals
-```{r, echo=FALSE}
-ECT1 <- c(-0.0025, -1.4757, -1.2205, -1.8461, -1.9858, -0.0757)
-ECT2<- c(-0.0002, -0.1583, -0.1277, -0.0425, -0.1907, -0.0145)
 
-#plot residuals
-residuals(VECModel)
-```
 
 
 ```{r, echo = FALSE}
@@ -503,77 +531,10 @@ Then test for white noise residuals.
 ```
 
 
-# Step 3: Augemented Dickey-Fuller tests
-
-The null-hypothesis of an Augmented Dickey-Fuller test is that the series has a unit-root. We ask, is the estimated critical value small enough to reject the null-hypothesis? If yes, we cannot reject the null hypothesis, therefore, the series may be non-stationary.
-
-In this section, we find that the interest rate is stationary, change in inflation is stationary, detrended real GDP is still not stationary, detrended monetary aggregate is still non-stationary and world oil price is non stationary.
-
-# Augmented Dickey Fuller tests
-
 ```{r, echo = FALSE}
-adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type="none", selectlags = c("AIC"))
-summary(adf.InterestRate) #non-stat
-
-adf.difInterestRate <- ur.df(diff(InterestRates_US$InterestRate), type="none", selectlags =c("AIC"))
-summary(adf.difInterestRate) #stat
+#adf.InterestRate <- ur.df(InterestRates_US$InterestRate, type="none", selectlags = c("AIC"))
+#summary(adf.InterestRate) #non-stat
 ```
-
-```{r, echo = FALSE}
-adf.Inflation <- ur.df(logInflation_US$logInflation, type = "none", selectlags = c("AIC"))
-summary(adf.Inflation) #non stat
-
-adf.difInflation <- ur.df(diff(logInflation_US$logInflation), type = "none", selectlags = c("AIC"))
-summary(adf.difInflation) #stat
-```
-
-Real GDP
-
-```{r, echo = FALSE}
-adf.RealGDP <- ur.df(logRealGDP_US$logRealGDP, type = "none", selectlags = c("AIC"))
-summary(adf.RealGDP) #non stat
-
-adf.difRealGDP <- ur.df(diff(logRealGDP_US$logRealGDP), type = "none", selectlags = c("AIC"))
-summary(adf.difRealGDP) #stat
-```
-Monetary Aggregates
-
-```{r, echo = FALSE}
-adf.MonetaryAggregate <- ur.df(logMonetaryAggregateM1_US$logMonetaryAggregate, type = "none", selectlags = c("AIC"))
-summary(adf.MonetaryAggregate) #non-stat
-
-adf.difMonetaryAggregate <- ur.df(diff(logMonetaryAggregateM1_US$logMonetaryAggregate), type = "none", selectlags = c("AIC"))
-summary(adf.difMonetaryAggregate) #non-stat
-```
-Exchange Rate
-
-```{r, echo = FALSE}
-adf.ExchangeRates <- ur.df(logExchangeRates_US$logExchangeRates, type = "none", selectlags = c("AIC"))
-summary(adf.ExchangeRates)#non stat
-
-adf.difExchangeRates <- ur.df(diff(logExchangeRates_US$logExchangeRates), type = "none", selectlags = c("AIC"))
-summary(adf.difExchangeRates) #stat
-```
-
-World Oil Price
-```{r, echo = FALSE}
-adf.WorldOilPrice <- ur.df(logWorldOilPrice$logWorldOilPrice, type = "none", selectlags = c("AIC"))
-summary(adf.WorldOilPrice) #non stat
-```
-
-# Set up the VAR model
-
-# Build VAR model
-```{r, echo = FALSE}
-ModelUS <- VAR(groupedVAR, p=3, type="trend", season=NULL, exog=NULL)
-summary(ModelUS)
-```
-
-
-
-
-
-# Step 5: ACF & PACF? or AIC criteria to choose lags
 
 
 
@@ -581,20 +542,20 @@ summary(ModelUS)
 
 # Step 7: Are the residuals white noise?
 
-
 # Step 8: Find VECM model by imposing SR contemporaneous effects
 
 # Step 9: Test model specification using congruency, parsimony, lag inclusion...
+
+Alternatively, exclude exchange rates as the paper unusually included these. However, in our models we could not find exchange rates to be significant.
 
 # Appendix {-}
 
 # Johansen Tests {-}
 ```{r, echo = FALSE}
-
-summary(jotestEigen_US)
+#summary(jotestEigen_US)
 ```
 
 ```{r, echo = FALSE}
-summary(jotestTrace_US)
+#summary(jotestTrace_US)
 ```
 
