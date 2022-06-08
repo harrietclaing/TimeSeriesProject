@@ -271,55 +271,54 @@ The methodology that I applied in order to replicate the study, was to first tra
 Resultant time series variables were as follows:
 
 ```{r, echo = FALSE}
-g<- ggplot() +
-    geom_point(aes(InterestRates_US$DATE, InterestRates_US$InterestRate)) +
+g<- ggplot(InterestRates_US) +
+    geom_line(aes(DATE,InterestRate, group=1), size=0.8, colour='blue') +
     xlab("") +
     ylab("") +
     theme(plot.title = element_text(hjust = 0.5)) +
     labs(title = "Interest rates") +
-    theme(axis.text.x = element_blank())
+    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
-h<- ggplot() +
-    geom_point(aes(logInflation_US$DATE, logInflation_US$logInflation))+
+h<- ggplot(logInflation_US) +
+    geom_line(aes(DATE,logInflation, group=1), size=0.8, colour='red') +
     xlab("") +
     ylab("") +
     theme(plot.title = element_text(hjust = 0.5)) +
     labs(title = "Inflation") +
-    theme(axis.text.x = element_blank())
+    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
-i<- ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, logRealGDP_US$logRealGDP))+
+i<- ggplot(logRealGDP_US) +
+    geom_line(aes(DATE,logRealGDP, group=1), size=0.8, colour='orange') +
     xlab("") +
     ylab("") +
     theme(plot.title = element_text(hjust = 0.5)) +
     labs(title = "Real GDP") +
-    theme(axis.text.x = element_blank())
+    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
-k<- ggplot() +
-    geom_point(aes(TransformedMonetaryAggregateM1_US$DATE, TransformedMonetaryAggregateM1_US$TransformedMonetaryAggregateM1))+
+k<- ggplot(TransformedMonetaryAggregateM1_US) +
+    geom_line(aes(DATE,TransformedMonetaryAggregateM1, group=1), size=0.8, colour='purple') +
     xlab("") +
     ylab("") +
     theme(plot.title = element_text(hjust = 0.5)) +
     labs(title = "Monetary Aggregate") +
-    theme(axis.text.x = element_blank())
+    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
-l<- ggplot() +
-    geom_point(aes(logRealGDP_US$DATE, logExchangeRates_US$logExchangeRates)) +
+l<- ggplot(logExchangeRates_US) +
+    geom_line(aes(DATE,logExchangeRates, group=1), size=0.8, colour='pink') +
     xlab("") +
     ylab("") +
     theme(plot.title = element_text(hjust = 0.5)) +
-    labs(title = "Real GDP") +
-    theme(axis.text.x = element_blank())
+    labs(title = "Exchange Rate") +
+    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
-m<- ggplot() +
-    geom_point(aes(logWorldOilPrice$DATE, logWorldOilPrice$logWorldOilPrice))+
+
+m<- ggplot(logWorldOilPrice) +
+    geom_line(aes(DATE,logWorldOilPrice, group=1), size=0.8, colour='green') +
     xlab("") +
     ylab("") +
     theme(plot.title = element_text(hjust = 0.5)) +
     labs(title = "World Oil Price") +
-    theme(axis.text.x = element_blank())
-
-
+    theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
 grid.arrange(g, h, i, k, l, m)
 ```
@@ -358,15 +357,43 @@ summary(VARModelNew)
 
 # Restricted VAR system
 
-We obtain the covariance matrix of residuals from our VAR system and then mutliply that by our B matrix of short-run restrictions.
+According to the paper, $u_t=E_tB$ which means that we can recover the short run error vector $u_t$ from the long-run error we obtain from our VAR system. We obtain the covariance matrix of residuals from our VAR system and then mutiply that by our B matrix of short-run restrictions and the transpose of the B matrix, because the paper states that these are equivalent. 
 ```{r, echo = FALSE}
 VARModelRestricted <- VAR(groupedVAR, p=2, type = "trend", lag.max = 4)
+
 covariancematrix <- summary(VARModelRestricted)$covres
-covariancematrix*B_Matrix
 ```
 
-Comparison of cointegrating vectors
+Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
+```{r, echo = FALSE}
+Brow1 <- c(1,1,NA,1,NA,NA)
+Brow2 <- c(NA,1,1,1,1,1)
+Brow3 <- c(NA,NA,1,1,1,1)
+Brow4 <- c(NA,NA,NA,1,1,1)
+Brow5 <- c(NA,NA,NA,NA,1,1)
+Brow6 <- c(NA,NA,NA,NA,NA,1)
+#m, r, y, p, e, o
+
+
+B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
+B_Matrix
+
+colnames(B_Matrix)<-NULL
+rownames(B_Matrix) <- NULL
+```
+
+```{r, echo = FALSE}
+covariancematrix*B_Matrix*t(B_Matrix)
+```
+We then obtain a single entry for each row, which we can create our short-run error vector from.
 ```{r}
+ErrorVector_U <- c(0.0001328802, 0.07138726, 2.804883e-05, 0.753182, 0.01135468,  0.02108534)
+class(ErrorVector_U)
+```
+
+
+Comparison of cointegrating vectors
+```{r, echo = FALSE}
 cointegratingvector1 <- c(1, 0, -0.1704922, -0.01710960, 0.6161332, -0.3747751)
 cointegratingvector2 <- c(0,1, 1.6056301, 0.06991751, -5.4962156, 6.5786487)
 papercointegratingvector<- c(1, 0.16, 0, -26.019, 0.218, 0)
@@ -391,6 +418,11 @@ cat(tabl)
 VECModel <- ca.jo(groupedVAR, type="eigen", K=2, ecdet="trend", spec="longrun") #incl linear trend as per paper
 VARModel <- vec2var(VECModel, r=2)
 ```
+
+```{r}
+summary(VARModel)
+```
+
 We need to find the SR error, which is equal to the LR error (ECT in the VECM) multiplied by the SR restrictions (B matrix)
 ```{r, echo=FALSE}
 
@@ -458,24 +490,7 @@ Cointegrating vectors visually??
 
 
 
-Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
-```{r, echo = FALSE}
 
-Brow1 <- c(1,1,NA,1,NA,NA)
-Brow2 <- c(NA,1,1,1,1,1)
-Brow3 <- c(NA,NA,1,1,1,1)
-Brow4 <- c(NA,NA,NA,1,1,1)
-Brow5 <- c(NA,NA,NA,NA,1,1)
-Brow6 <- c(NA,NA,NA,NA,NA,1)
-#m, r, y, p, e, o
-
-
-B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
-B_Matrix
-
-colnames(B_Matrix)<-NULL
-rownames(B_Matrix) <- NULL
-```
 ...Let us see if we can impose the restrictions contained in the B matrix onto the cointegrating vectors contained in the Et matrix.
 ```{r, echo = FALSE}
 #U_Matrix <- cointegrating_matrix*B_Matrix
