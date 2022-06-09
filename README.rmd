@@ -235,40 +235,42 @@ monetaryaggregate <- ts(TransformedMonetaryAggregateM1_US$TransformedMonetaryAgg
 
 # Introduction \label{Introduction}
 
-To replicate the study by Cologni & Manera, the sam  methodology and structural cointegrated VAR model was used. This paper investigates whether the findings from Cologni & Manera hold after 2003 in the United States, as the economic impact of a rise in oil prices during the period 1990 to 2017 is analysed. 
-
-Did the response of central banks reduce the impact of a sudden oil price shock?
+To replicate the study by Cologni & Manera, the same methodology and structural cointegrated VAR model was used. This paper investigates whether the findings from Cologni & Manera hold after 2003 in the United States, as the economic impact of a rise in oil prices during the period 1990 to 2017 is analysed. This paper sought to find whether the response of central banks to a sudden oil price shock reduce the impact thereof.
 
 This replication paper finds that...is the optimal model for this time period and ...
 
 # Background
 
-Many economists regard increases in the oil price as a major cause of asymmetries in the business cycle. This issue became especially important to economists following the world oil market highs in the early 2000s which could lead to economic slowdowns in developed countries. The hypothesised asymmetric relationship between oil prices and economic activity was first hypothesised after the oil price collapse of 1986 which did not lead to an economic boom, which is what theoretically should have been the case following the view that there existed an inverse relationship between oil prices and the economy.
+Many economists regard increases in the oil price as a major cause of asymmetries in the business cycle. Many studies have found a negative impact on aggregate economic activity as a result of an increase in the oil price (Hamilton, 1983). This issue became especially important to economists following the world oil market highs in the early 2000s which could lead to economic slowdowns in developed countries. The hypothesised asymmetric relationship between oil prices and economic activity was first hypothesised after the oil price collapse of 1986 which did not lead to an economic boom, which is what theoretically should have been the case following the view that there existed an inverse relationship between oil prices and the economy.
 
 However, the channels through which an increase in the oil price impacts economic variables remains unclear. There are many possible theoretical explanations; some of which link to the effect of decreasing firms' profits which may reduce capital spending and consumers' expectations which causes them to consume more today, others link to the income transfer between oil-importing countries and oil exporting countries that shifts, and others link an increase in oil prices to the increases in prices of related goods, thereby increasing inflation.
 
 There is also, importantly, effects on economic variables that flow indirectly from an increase in oil prices. Namely, that the monetary authority responds to increase employment and ensure price stability once an increase in oil prices threatens these two objectives. For example, in the US, the Federal bank ...
 The role of monetary policy may cause delayed impacts of an increase in oil prices on economic variables.
 
-Many studies have found a negative impact on aggregate economic activity as a result of an increase in the oil price (Hamilton, 1983). 
 
 # Replication methodology & results
 
 
-# Step 1: Find the data
+## Finding the data
 
 As per the paper, the data was sourced where possible from the IMF. However, for the interest rate and exchange rate we sourced the data from Board of Governors of the Federal Reserve System and for inflation from the US Bureau of Labor Statistics. First, we want to use US data and see if we can replicate the results in the study. We need to convert all the data into quarterly. The time period available to reproduce the results of the paper was constrained by the availability of world oil price data: could only find from 1990, therefore had to limit to 1990 onwards. Similarly, restricted time period due to the data availability of money. In the paper they used predominantly seasonally-adjusted data but due to constraints on availability of data, for this replication I used a combination of seasonally-adjusted and not seasonally-adjusted.
 
-Interest Rate= Federal Funds Effective Rate, percent, not seasonally adjusted, monthly Source:  Board of Governors of the Federal Reserve System
-Exchange Rate= Millions of Dollars, Not Seasonally Adjusted, quarterly, source: Board of Governors of the Federal Reserve System (2021)
-Inflation = Index 1982-1984=100, Seasonally Adjusted, monthly, source  U.S. Bureau of Labor Statistics
-Real GDP = Domestic Currency, Seasonally Adjusted, quarterly, source IMF
-Monetary Aggregate = Dollars, Seasonally Adjusted, monthly source: IMF
-World Oil Price = U.S. Dollars per Barrel, Not Seasonally Adjusted, monthly, IMF. Need to do until 2017 because of monetary aggregate data constraints
+```{r table1, echo=FALSE, message=FALSE, warnings=FALSE, results='asis'}
+tabl1 <- "
+| Economic variable     | Cologni & Manera (all IMF)               | Replication paper 
+|-----------------------|:----------------------------------------:|:----------------------------------------------:|
+|Interest Rate          |Federal Funds rate (% per annum)          |Federal Funds Effective rate (% per month)      |
+|Inflation              |Consumer price index (index number)       |Consumer price index (1982-1984=100)            | 
+|Real GDP               |Real GDP (constant prices 1995) (billions)|Real GDP (constant prices 1995) (billions) (IMF)| 
+|Monetary Aggregate     |Money M1 (billions)                       |Money M1 (billions) (IMF)                       |
+|Exchange Rate          |US dollars (per SDR)                      |US dollars (millions)                           |
+|World Oil Price        |International average price (Brent dated) |US dollars per barrel (IMF)                     |
+"
+cat(tabl1)
+```
 
 The methodology that I applied in order to replicate the study, was to first transform all of the quarterly series in logarithms except for the interest rate. As in the paper, we run Augmented Dickey Fuller tests on all the time series variables. Findings at the 1% confidence interval were that are all variables were non-stationary and were integrated of order 1, except for the monetary aggregate which was found to be integrated of order 2. The lags were selected according to the AIC criteria, as done in the paper. The results in this replication differed only from the paper regarding the integration order of inflation, which was found to be integrated of order 1 by Cologni & Manera. This difference from the paper dictated that only the monetary aggregate be transformed by subtracting inflation to become the real monetary aggregate (by taking the difference between the logarithm of monetary aggregate and the logarithm of inflation), and the transformation for inflation was not followed. This is because for finding cointegrating relationships, the time series variables must be integrated of order 1.
-
-Resultant time series variables were as follows:
 
 ```{r, echo = FALSE}
 g<- ggplot(InterestRates_US) +
@@ -320,11 +322,11 @@ m<- ggplot(logWorldOilPrice) +
     labs(title = "World Oil Price") +
     theme(axis.ticks.x = element_blank(), axis.text.x = element_blank())
 
-grid.arrange(g, h, i, k, l, m)
+grid.arrange(g, h, i, k, l, m, main = "Figure 1: Replicated time series variables from 1980-2017")
 ```
-We then construct our VAR model by creating a matrix which includes the time series variables included in Figure 1. We set the lag max to 4. The VAR model was found to have 4 when we used the AIC lag selection criteria and accounted for a time trend, as is done in the paper. We order our VAR system in the same way as the short run restrictions matrix in the paper: monetary aggregate, interest rate, real GDP, inflation, exchange rate and world oil price. Lag should be 2 according to the paper, but we find AIC suggests 4. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008. Therefore, it is likely the difference in the optimal lags between this replication and the Cologni & Manera paper arises from the different time periods used, as Cologni & Manera's time period ends before the financial crisis.
+We then construct our VAR model and estimate the number of lags to be included. According to the paper, the lag max is set to 4 and the AIC lag selection criteria is used. The VAR model in the replication was found to have 4 lags and accounted for a time trend, as is done in the paper. We order our VAR system in the same way as the short run restrictions matrix in the paper: monetary aggregate, interest rate, real GDP, inflation, exchange rate and world oil price. Cologni & Manera find that the number of lags should be 2. As can be seen in Figure 1, there is clearly a lot of persistence after the financial crisis. Exchange rates for the US had a stark level increase around this water-shed event and interest rates were set close to zero to try and stimulate the economy, where they have remained fairly constant since this monetary policy adjustment. Similarly, we can note real GDP has diminished since 2008. Therefore, it is likely the difference in the optimal lags between this replication and the Cologni & Manera paper arises from the different time periods used, as Cologni & Manera's time period ends before the financial crisis.
 
-For a VAR model, we use the lag of 4, but for the VECM model we use the lag of 3. This is because a VECM model has a difference term.
+For a VAR model, we use the lag of 4. For the VECM model, we use the lag of 3 because a VECM model has a difference term.
 
 ```{r, echo = FALSE}
 groupedVAR <- cbind(monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice)
@@ -339,7 +341,7 @@ cointanalysisVAR <- cbind(realGDP, worldoilprice, interestrate, inflation, excha
 #lagselect$selection
 ```
 
-Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find that there is likely one cointegrating relationship at the 5% confidence interval where our critical value is smaller than the test statistic, however, only marginally (37.26 estimated value < 37.52 critical value). For the trace test, we find that there is at least two cointegrating relationships. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal, we conclude from our estimates that there is likely two cointegrating relationships. This is a divergence from the result as is found for the US in Cologni & Manera.
+Now we can see long-run trends in the time series variables, but wish to now see if there exists any cointegrating relationships. We test this using the Johansen test, namely the eigenvalue test and the trace test. For the eigenvalue test, we find we cannot reject the null hypothesis that the number of cointegrating relationships is between 0 and 1 at the 5% confidence interval where our critical value is smaller than the test statistic, however, only marginally (37.26 estimated value < 37.52 critical value). For the trace test, we find that we cannot reject the null hypothesis that the number of cointegrating relationships is between 1 and 2. Therefore, because the rejection of the null hypothesis in the eigenvalue test is incredibly marginal, we conclude from our estimates that there is likely two cointegrating relationships. This is a divergence from the result as is found for the US in Cologni & Manera.
 
 Cointegration analysis of the restricted system
 
@@ -355,21 +357,49 @@ VARModelNew <- VAR(cointanalysisVAR, p=2, type = "trend", lag.max = 4)
 
 # Restricted VAR system
 
-According to the paper, $u_t=E_tB$ which means that we can recover the short run error vector $u_t$ from the long-run error we obtain from our VAR system. We obtain the covariance matrix of residuals from our VAR system and then mutiply that by our B matrix of short-run restrictions and the transpose of the B matrix, because the paper states that these are equivalent. 
-```{r, echo = FALSE}
-VARModelRestricted <- VAR(groupedVAR, p=2, type = "trend", lag.max = 4)
+The covariance matrix of residuals from the VAR system provides us with an estimate of the contemporaneous effects of each variable.
 
-covariancematrix <- summary(VARModelRestricted)$covres
+Let us check which variables might be cointegrated, by regressing them on each other and checking if the residuals are stationary or not
+
+monetaryaggregate, interestrate, realGDP, inflation, exchangerate, worldoilprice
+```{r}
+gold_eq <- lm(worldoilprice ~ interestrate, data=cointanalysisVAR)
+summary(gold_eq)
+
+gold_eq$residuals %>%
+  ur.df(., lags = 4, type = "none") %>%
+  summary()
+```
+At 1%...
+M & IR not stationary, M& G not, & inf not, &exch not, &oil not
+int rate and oil YES (yes)
+IR & GDP yes (yes)
+IR & inflation yes (yes)
+IR & exch rate yes (no)
+GDP & exch no, & infla no, %oil no
+infla & exch no
+infla & oil price yes (no)
+exh & oil no
+
+We want to set up our own VECM model
+```{r}
+dat_ecm <- tibble(
+  gold_d = diff(dat$gold)[-1],
+  silver_d = diff(dat$silver)[-1],
+  error_ecm1 = gold_eq$residuals[-1:-2],
+  gold_d1 = diff(dat$gold)[-(length(dat$gold) - 1)],
+  silver_d1 = diff(dat$silver)[-(length(dat$silver) - 1)]
+)
 ```
 
 Let us set up the imposed restrictions in a matrix, known as B matrix in the paper.
 ```{r, echo = FALSE}
-Brow1 <- c(1,1,NA,1,NA,NA)
-Brow2 <- c(NA,1,1,1,1,1)
-Brow3 <- c(NA,NA,1,1,1,1)
-Brow4 <- c(NA,NA,NA,1,1,1)
-Brow5 <- c(NA,NA,NA,NA,1,1)
-Brow6 <- c(NA,NA,NA,NA,NA,1)
+Brow1 <- c(1,1,0,1,0,0)
+Brow2 <- c(0,1,1,1,1,1)
+Brow3 <- c(0,0,1,1,1,1)
+Brow4 <- c(0,0,0,1,1,1)
+Brow5 <- c(0,0,0,0,1,1)
+Brow6 <- c(0,0,0,0,0,1)
 #m, r, y, p, e, o
 
 
@@ -378,6 +408,25 @@ B_Matrix <- rbind(Brow1, Brow2, Brow3, Brow4, Brow5, Brow6)
 colnames(B_Matrix)<-NULL
 rownames(B_Matrix) <- NULL
 ```
+
+We want to find whether our restrictions are exogenous or not.
+```{r}
+#H2 <- alrtest(Johansentestcointanalysis, A = B_Matrix, r = 1)
+#summary(H2)
+
+#DA <- matrix(c(1,0,0,0), c(4,1))
+#summary(alrtest(sjd.vecm, A=DA, r=1))
+```
+
+
+According to the paper, $u_t=E_tB$ which means that we can recover the short run error vector $u_t$ from the long-run error we obtain from our VAR system. We obtain the covariance matrix of residuals from our VAR system and then mutiply that by our B matrix of short-run restrictions and the transpose of the B matrix, because the paper states that these are equivalent. 
+```{r, echo = FALSE}
+VARModelRestricted <- VAR(groupedVAR, p=2, type = "trend", lag.max = 4)
+
+covariancematrix <- summary(VARModelRestricted)$covres
+```
+
+
 
 ```{r, echo = FALSE}
 covariancematrix*B_Matrix*t(B_Matrix)
